@@ -3,26 +3,26 @@ package main
 import (
     "fmt"
     "strings"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     
     // Table with colored headers
-    headerTemplate := color.Parse("[bold fg=cyan][0][reset]")
-    rowTemplate := color.Parse("[0]  [fg=yellow][1][reset]  [fg=green][2][reset]")
+    headerTemplate := crayon.Parse("[bold fg=cyan][0][reset]")
+    rowTemplate := crayon.Parse("[0]  [fg=yellow][1][reset]  [fg=green][2][reset]")
     
-    fmt.Println(headerTemplate.Apply(strings.Repeat("─", 40)))
-    fmt.Println(headerTemplate.Apply("USER MANAGEMENT"))
-    fmt.Println(headerTemplate.Apply(strings.Repeat("─", 40)))
+    headerTemplate.Println(strings.Repeat("─", 40))
+    headerTemplate.Println("USER MANAGEMENT")
+    headerTemplate.Println(strings.Repeat("─", 40))
     
-    fmt.Println(rowTemplate.Apply("Alice", "admin", "active"))
-    fmt.Println(rowTemplate.Apply("Bob", "user", "active"))
-    fmt.Println(rowTemplate.Apply("Charlie", "guest", "inactive"))
+    rowTemplate.Println("Alice", "admin", "active")
+    rowTemplate.Println("Bob", "user", "active")
+    rowTemplate.Println("Charlie", "guest", "inactive")
     
     // Nested templates
-    errorTemplate := color.Parse("[bold fg=red][0][reset]: [1]")
-    suggestionTemplate := color.Parse("[fg=yellow]Suggestion: [0][reset]")
+    errorTemplate := crayon.Parse("[bold fg=red][0][reset]: [1]")
+    suggestionTemplate := crayon.Parse("[fg=yellow]Suggestion: [0][reset]")
     
     errors := []struct{
         code string
@@ -35,8 +35,8 @@ func main() {
     }
     
     for _, err := range errors {
-        fmt.Println(errorTemplate.Apply(err.code, err.msg))
-        fmt.Println("  " + suggestionTemplate.Apply(err.suggestion))
+        errorTemplate.Println(err.code, err.msg)
+        fmt.Println("  " + suggestionTemplate.Sprint(err.suggestion))
         fmt.Println()
     }
 }

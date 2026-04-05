@@ -1,3 +1,5 @@
+// Package crayon provides terminal colors and styles for Go.
+// A better go doc is needed to be written
 package crayon
 
 import (
@@ -6,8 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-	"os"
-	//uncomment after moving to version 1.24
+	"io"
 	"golang.org/x/term"
 )
 
@@ -29,17 +30,10 @@ func autoDetect() bool {
   if _, exists := os.LookupEnv("NO_COLOR"); exists{
     return false	
   }
-  //uncomment after moving to version 1.24
-  return term.isTerminal(int(os.Stdout.Fd()))//{
-
-  //}
-  //comment after moving to version 1.24
-  //fileInfo, _ := os.Stdout.Stat()
-  //os.ModeCharDevice should be replace with a cross platform version because this behaves differently on windows.
-  //return (fileInfo.Mode() & os.ModeCharDevice) != 0
+  return term.IsTerminal(int(os.Stdout.Fd()))
 }
 
-//should auto detect tty by default
+// Should auto detect tty by default
 func NewColorToggle(enableColor ...bool) *ColorToggle {
   var colorEnabled bool
   if len(enableColor) > 0{
@@ -188,15 +182,15 @@ func (temp CompiledTemplate) apply(args ...any) string {
 //=======================
 // PRINT
 //=======================
-func (temp CompiledTemplate) Println(args ..any) {
+func (temp CompiledTemplate) Println(args ...any) {
 	fmt.Println(temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Printf(format string, args ..any) {
+func (temp CompiledTemplate) Printf(format string, args ...any) {
 	fmt.Printf(format, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Print(args ..any) {
+func (temp CompiledTemplate) Print(args ...any) {
 	fmt.Print(temp.apply(args...))
 }
 
@@ -206,15 +200,15 @@ func (temp CompiledTemplate) Print(args ..any) {
 //=======================
 // EPRINT
 //=======================
-func (temp CompiledTemplate) Eprintln(args ..any) {
+func (temp CompiledTemplate) Eprintln(args ...any) {
 	fmt.Fprintln(os.Stderr, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Eprintf(format string, args ..any) {
+func (temp CompiledTemplate) Eprintf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Eprint(args ..any) {
+func (temp CompiledTemplate) Eprint(args ...any) {
 	fmt.Fprint(os.Stderr, temp.apply(args...))
 }
 
@@ -223,15 +217,15 @@ func (temp CompiledTemplate) Eprint(args ..any) {
 //=======================
 // FPRINT
 //=======================
-func (temp CompiledTemplate) Fprintln(w io.Writer, args ..any) (n int, err error) {
+func (temp CompiledTemplate) Fprintln(w io.Writer, args ...any) (n int, err error) {
 	return fmt.Fprintln(w, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Fprintf(w io.Writer, format string, args ..any) (n int, err error) {
+func (temp CompiledTemplate) Fprintf(w io.Writer, format string, args ...any) (n int, err error) {
 	return fmt.Fprintf(w, format, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Fprint(w io.Writer, args ..any) (n int, err error){
+func (temp CompiledTemplate) Fprint(w io.Writer, args ...any) (n int, err error){
 	return fmt.Fprint(w, temp.apply(args...))
 }
 
@@ -239,14 +233,14 @@ func (temp CompiledTemplate) Fprint(w io.Writer, args ..any) (n int, err error){
 //=======================
 // SPRINT
 //=======================
-func (temp CompiledTemplate) Sprintln(args ..any) string {
+func (temp CompiledTemplate) Sprintln(args ...any) string {
 	return fmt.Sprintln(temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Sprintf(args ..any) string{
-	return fmt.Sprintln(temp.apply(args...))
+func (temp CompiledTemplate) Sprintf(format string, args ...any) string{
+	return fmt.Sprintf(format, temp.apply(args...))
 }
 
-func (temp CompiledTemplate) Sprint(args ..any) string {
+func (temp CompiledTemplate) Sprint(args ...any) string {
 	return temp.apply(args...)
 }

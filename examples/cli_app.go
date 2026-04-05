@@ -1,8 +1,7 @@
 package main
 import(
-    "fmt"
     "os"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 // Best practice for CLI applications
 func main() {
@@ -19,13 +18,13 @@ func main() {
     useColor := !noColorFlag && os.Getenv("NO_COLOR") == ""
     
     // Create toggle
-    toggle := color.NewColorToggle(useColor)
+    toggle := crayon.NewColorToggle(useColor)
     
     // All templates use this toggle
     templates := struct {
-        Success color.CompiledTemplate
-        Error   color.CompiledTemplate
-        Header  color.CompiledTemplate
+        Success crayon.CompiledTemplate
+        Error   crayon.CompiledTemplate
+        Header  crayon.CompiledTemplate
     }{
         Success: toggle.Parse("[fg=green]✓ [0][reset]"),
         Error:   toggle.Parse("[fg=red]✗ [0][reset]"),
@@ -33,8 +32,8 @@ func main() {
     }
     
     // Use templates - they'll respect the toggle
-    fmt.Println(templates.Header.Apply("My Application"))
-    fmt.Println(templates.Success.Apply("Started successfully"))
+    templates.Header.Println("My Application")
+    templates.Success.Println("Started successfully")
     
     // If --no-color was used or NO_COLOR is set,
     // outputs will be plain text without escape codes

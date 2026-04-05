@@ -12,13 +12,15 @@ go get github.com/ph4mished/crayon
 
 # Features
 
-- Multiple Color Systems: Named colors, hex codes, RGB, 256-color palette
-- TrueColor Detection: Automatic detection of terminal truecolor support
-- Terminal Safe: Graceful fallbacks when color not supported(no-color fallback)
+- Multiple Color Systems: Named colors, hex codes, RGB, 256-color palette.
+- TrueColor Detection: Automatic detection of terminal truecolor support.
+- Terminal Safe: Graceful fallbacks when color not supported(no-color fallback).
 - Simple API: Easy-to-use functions for text styling and coloring.
-- Comprehensive Styles: Bold, italic, underline, blink, reverse, hidden, strike-through
-- Granular Resets: Individual and full reset codes for precise control
+- Comprehensive Styles: Bold, italic, underline, blink, reverse, hidden, strike-through.
+- Granular Resets: Individual and full reset codes for precise control.
 - No Escape: Texts in [] that aren't colors/styles are left as it is.
+- Cross-Platform: Full color support on Windows (Windows Terminal, cmd), Linux and macOS.
+
 
 # Core Concepts
 
@@ -72,6 +74,10 @@ func main() {
     template.Println("Network timeout")
 }
 ```
+# Output
+
+![quick_start](github.com/ph4mished/crayon/images/quick_start_merge.png)
+---
 
 # Complete Usage Examples
 
@@ -102,6 +108,11 @@ func main() {
     logTemplate.Println("[ERROR]", "db", "Connection failed")
 }
 ```
+
+# Output
+
+![basic_index_merge](github.com/ph4mished/crayon/images/basic_index_merge.png)
+---
 
 ## Basic Text Coloring
 ```go
@@ -161,6 +172,11 @@ func main(){
 }
 ```
 
+# Output
+
+![basic_color_merge](github.com/ph4mished/crayon/images/basic_color_merge.png)
+---
+
 ## Color Toggling
 
 ```go
@@ -196,6 +212,11 @@ func main() {
     helpTemplate.Println("Usage:", "myapp [options]")
 }
 ```
+
+# Output
+
+![color_toggle](github.com/ph4mished/crayon/images/color_toggle_merge.png)
+---
 
 ## Advanced Template Examples
 
@@ -249,6 +270,11 @@ func main() {
 }
 ```
 
+# Output
+
+![adv_temp](github.com/ph4mished/crayon/images/adv_temp_merge.png)
+---
+
 ## Building Complex UIs
 
 ```go
@@ -295,6 +321,11 @@ func main() {
     }
 }
 ```
+
+# Output
+
+![complex_ui](github.com/ph4mished/crayon/images/complex_ui_merge.png)
+---
 
 ## Project Structure Example
 
@@ -430,6 +461,11 @@ func main() {
 }
 ```
 
+# Output
+
+![cli_app](github.com/ph4mished/crayon/images/cli_app_merge.png)
+---
+
 ## Error Handling in Templates
 
 ```go
@@ -484,6 +520,11 @@ func main() {
     }
 }
 ```
+
+# Output
+
+![error_handle](github.com/ph4mished/crayon/images/err_handle_merge.png)
+---
 
 ## Pattern to avoid
 ```go
@@ -554,9 +595,9 @@ func main() {
 ## Performance Comparison Result
 
 ```bash
-Template reuse: 2.540160479s
-Parse every time: 24.301094388s
-Manual concatenation: 2.651576062s
+Template reuse: 1.75269893s
+Parse every time: 20.433925041s
+Manual concatenation: 2.6698368s
 ```
 
 
@@ -658,17 +699,16 @@ Manual concatenation: 2.651576062s
 
 # Limitations
 
-1. Terminal Dependency: Colors only work in terminals that support ANSI escape codes(Unix/Linux platforms)
+1. Terminal Dependency: Colors only work in terminals that support ANSI escape codes(Unix/Linux/Windows platforms)
 2. TrueColor Requirement: Hex and RGB colors require terminal with truecolor support
 3. Style Support: Some styles (blink, double underline) may not work in all terminals
 4. Color Detection: Fallback from truecolor to 256-color not yet implemented
-5. Windows: May require additional setup on Windows terminals
 
 # Platform Support
 
 - Linux/macOS terminals (full support)
-- Windows Terminal/WSL (good support probably)
-- Legacy Windows CMD (not supported)
+- Windows Terminal/WSL, CMD, Powershell (full support)
+- Legacy Windows CMD (limited - some styles may not render)
 - iTerm2, GNOME Terminal, Kitty (not tested yet)
 
 # Contributing
@@ -706,7 +746,7 @@ go test
 
 # License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](https://github.com/ph4mished/crayon/LICENSE) file for details.
 
 # Acknowledgments
 

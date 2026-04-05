@@ -1,23 +1,22 @@
 package main
 
 import (
-    "fmt"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Simple template with one placeholder
-    greeting := color.Parse("[fg=green]Hello, [0][9999][reset]!")
+    greeting := crayon.Parse("[fg=green]Hello, [0][reset]!")
     
-    fmt.Println(greeting.Apply("Alice"))
-    fmt.Println(greeting.Apply("Bob"))
-    fmt.Println(greeting.Apply("World"))
+    greeting.Println("Alice")
+    greeting.Println("Bob")
+    greeting.Println("World")
     
     // Complex template with multiple placeholders
-    logTemplate := color.Parse("[0] [fg=blue][1][reset]: [fg=yellow][2][reset]")
+    logTemplate := crayon.Parse("[0] [fg=blue][1][reset]: [fg=yellow][2][reset]")
     
     // Different log levels
-    fmt.Println(logTemplate.Apply("[INFO]", "main", "Application started"))
-    fmt.Println(logTemplate.Apply("[WARN]", "auth", "Token expiring soon"))
-    fmt.Println(logTemplate.Apply("[ERROR]", "db", "Connection failed"))
+    logTemplate.Println("[INFO]", "main", "Application started")
+    logTemplate.Println("[WARN]", "auth", "Token expiring soon")
+    logTemplate.Println("[ERROR]", "db", "Connection failed")
 }

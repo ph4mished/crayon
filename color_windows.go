@@ -1,4 +1,5 @@
 //go:build windows
+//This file is meant for windows only
 package crayon
 
 import (
@@ -16,10 +17,4 @@ func init(){
 	// ENABLE_PROCESSED_OUTPUT = 0x0001
 	// ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002
 	windows.SetConsoleMode(stdout, mode|0x0004|0x0001|0x0002)
-}
-
-func autoDetect() bool {
-	var mode uint32
-	err := windows.GetConsoleMode(windows.Handle(windows.Stdout), &mode)
-    return err = nil
 }
