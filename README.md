@@ -1,5 +1,5 @@
 
-# Color
+# Crayon
 
 A comprehensive Go library for adding colors, styles, and formatting to terminal output with support for multiple color formats and truecolor detection. [This is a Go port of the Spectra color library](https://github.com/ph4mished/spectra)
 
@@ -7,7 +7,7 @@ A comprehensive Go library for adding colors, styles, and formatting to terminal
 # Installation
 
 ```bash
-go get github.com/ph4mished/color
+go get github.com/ph4mished/crayon
 ```
 
 # Features
@@ -40,36 +40,36 @@ package main
 
 import (
     "fmt"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Parse and use color codes directly
-    red := color.ParseColor("fg=red")
-    bold := color.ParseColor("bold")
-    reset := color.ParseColor("reset")
+    red := crayon.ParseColor("fg=red")
+    bold := crayon.ParseColor("bold")
+    reset := crayon.ParseColor("reset")
     
     fmt.Printf("%sThis is red and bold!%s\n", red + bold, reset)
 
     // Check if a color is supported
-    if color.IsSupportedColor("fg=#FF0000") {
+    if crayon.IsSupportedColor("fg=#FF0000") {
         fmt.Println("Hex colors are supported!")
     }
     
     // Or use the main functions
-    color.Parse("[fg=blue]Hello in blue![reset]").Apply()
-    color.Parse("[bg=yellow fg=black bold]Bold black text on yellow background.[reset]").Apply()
+    crayon.Parse("[fg=blue]Hello in blue![reset]").Println()
+    crayon.Parse("[bg=yellow fg=black bold]Bold black text on yellow background.[reset]").Println()
 
 
     //Or pre-parse the color template with placeholders for reuse. This is the heart of the library's performance.
 
     // Parse once
-    template := color.Parse("[fg=red bold]Error: [0][reset]")
+    template := crayon.Parse("[fg=red bold]Error: [0][reset]")
 
     // Reuse multiple times
-    fmt.Println(template.Apply("File not found"))
-    fmt.Println(template.Apply("Permission denied"))
-    fmt.Println(template.Apply("Network timeout"))
+    template.Println("File not found")
+    template.Println("Permission denied")
+    template.Println("Network timeout")
 }
 ```
 
@@ -82,24 +82,24 @@ package main
 
 import (
     "fmt"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Simple template with one placeholder
-    greeting := color.Parse("[fg=green]Hello, [0][reset]!")
+    greeting := crayon.Parse("[fg=green]Hello, [0][reset]!")
     
-    fmt.Println(greeting.Apply("Alice"))
-    fmt.Println(greeting.Apply("Bob"))
-    fmt.Println(greeting.Apply("World"))
+    greeting.Println("Alice")
+    greeting.Println("Bob")
+    greeting.Println("World")
     
     // Complex template with multiple placeholders
-    logTemplate := color.Parse("[0] [fg=blue][1][reset]: [fg=yellow][2][reset]")
+    logTemplate := crayon.Parse("[0] [fg=blue][1][reset]: [fg=yellow][2][reset]")
     
     // Different log levels
-    fmt.Println(logTemplate.Apply("[INFO]", "main", "Application started"))
-    fmt.Println(logTemplate.Apply("[WARN]", "auth", "Token expiring soon"))
-    fmt.Println(logTemplate.Apply("[ERROR]", "db", "Connection failed"))
+    logTemplate.Println("[INFO]", "main", "Application started")
+    logTemplate.Println("[WARN]", "auth", "Token expiring soon")
+    logTemplate.Println("[ERROR]", "db", "Connection failed")
 }
 ```
 
@@ -107,17 +107,17 @@ func main() {
 ```go
 package main
 
-import "github.com/ph4mished/color"
+import "github.com/ph4mished/crayon"
 
 func main(){
   // Simple colored text
-  color.Parse("[fg=green]Success message![reset]").Apply()
-  color.Parse("[fg=red bold]Error: Something went wrong![reset]").Apply()
-  color.Parse("[fg=cyan italic]Info message[reset]").Apply()
+  crayon.Parse("[fg=green]Success message![reset]").Println()
+  crayon.Parse("[fg=red bold]Error: Something went wrong![reset]").Println()
+  crayon.Parse("[fg=cyan italic]Info message[reset]").Println()
 
   // Background colors
-  color.Parse("[bg=blue fg=white]White text on blue background[reset]").Apply()
-  color.Parse("[bg=lightgreen fg=black]Black text on light green[reset]").Apply()
+  crayon.Parse("[bg=blue fg=white]White text on blue background[reset]").Println()
+  crayon.Parse("[bg=lightgreen fg=black]Black text on light green[reset]").Println()
 }
 ```
 
@@ -126,20 +126,20 @@ func main(){
 ```go
 package main
 
-import "github.com/ph4mished/color"
+import "github.com/ph4mished/crayon"
 
 func main(){
 // Hex colors (requires truecolor support)
-color.Parse("[fg=#FF5733]Orange hex color[reset]").Apply()
-color.Parse("[bg=#3498db]Blue background[reset]").Apply()
+crayon.Parse("[fg=#FF5733]Orange hex color[reset]").Println()
+crayon.Parse("[bg=#3498db]Blue background[reset]").Println()
 
 // RGB colors
-color.Parse("[fg=rgb(255,105,180)]Hot pink text[reset]").Apply()
-color.Parse("[bg=rgb(50,205,50)]Lime green background[reset]").Apply()
+crayon.Parse("[fg=rgb(255,105,180)]Hot pink text[reset]").Println()
+crayon.Parse("[bg=rgb(50,205,50)]Lime green background[reset]").Println()
 
 // 256-color palette
-color.Parse("[fg=214]Orange from 256-color palette[reset]").Apply()
-color.Parse("[bg=196]Red background from palette[reset]").Apply()
+crayon.Parse("[fg=214]Orange from 256-color palette[reset]").Println()
+crayon.Parse("[bg=196]Red background from palette[reset]").Println()
 }
 ```
 
@@ -148,16 +148,16 @@ color.Parse("[bg=196]Red background from palette[reset]").Apply()
 ```go
 package main
 
-import "github.com/ph4mished/color"
+import "github.com/ph4mished/crayon"
 
 func main(){
     // Combine styles
-    color.Parse("[bold underline=single] Bold and underlined[reset]").Apply()
-    color.Parse("[italic dim]", "Dim italic text. [italic=reset dim=reset][strike]Strikethrough  text only[reset]").Apply()
-    color.Parse("[blink=slow hidden]Slow blinking hidden text[reset]").Apply()
+    crayon.Parse("[bold underline=single] Bold and underlined[reset]").Println()
+    crayon.Parse("[italic dim]", "Dim italic text. [italic=reset dim=reset][strike]Strikethrough  text only[reset]").Println()
+    crayon.Parse("[blink=slow hidden]Slow blinking hidden text[reset]").Println()
 
     // Reset specific attributes
-    color.Parse("[bold fg=blue]Blue bold text. [bold=reset]No longer bold, but still blue. [fg=reset]No color, but other styles remain[reset]").Apply()
+    crayon.Parse("[bold fg=blue]Blue bold text. [bold=reset]No longer bold, but still blue. [fg=reset]No color, but other styles remain[reset]").Println()
 }
 ```
 
@@ -169,31 +169,31 @@ package main
 import (
     "fmt"
     "os"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Create color toggle - respects NO_COLOR env var and when output is redirected by default
-    toggle := color.NewColorToggle()
+    toggle := crayon.NewColorToggle()
     
     // Parse templates using the toggle
     successTemplate := toggle.Parse("[fg=green]✓ [0][reset]")
     errorTemplate := toggle.Parse("[fg=red]✗ [0][reset]")
     
     // These will only show colors if appropriate
-    fmt.Println(successTemplate.Apply("Operation completed"))
-    fmt.Println(errorTemplate.Apply("Operation failed"))
+    successTemplate.Println("Operation completed")
+    errorTemplate.Println("Operation failed")
     
     // Manual control
-    forceColors := color.NewColorToggle(true)   // Always show colors
-    noColors := color.NewColorToggle(false)     // Never show colors
+    forceColors := crayon.NewColorToggle(true)   // Always show colors
+    noColors := crayon.NewColorToggle(false)     // Never show colors
     
     // Use in CLI applications
     useColor := os.Getenv("NO_COLOR") == ""
-    appToggle := color.NewColorToggle(useColor)
+    appToggle := crayon.NewColorToggle(useColor)
     
     helpTemplate := appToggle.Parse("[bold fg=cyan][0][reset] [fg=green][1][reset]")
-    fmt.Println(helpTemplate.Apply("Usage:", "myapp [options]"))
+    helpTemplate.Println("Usage:", "myapp [options]")
 }
 ```
 
@@ -205,12 +205,12 @@ package main
 import (
     "fmt"
     "time"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Status indicator with conditional colors
-    statusTemplate := color.Parse("[0] [1][reset]")
+    statusTemplate := crayon.Parse("[0] [1][reset]")
     
     items := []struct{
         name string
@@ -232,17 +232,17 @@ func main() {
             statusColor = "[fg=yellow]"
         }
         
-        statusColored := color.Parse(statusColor + item.status).Apply()
-        fmt.Println(statusTemplate.Apply(item.name + ":", statusColored))
+        statusColored := crayon.Parse(statusColor + item.status).Sprint()
+        statusTemplate.Println(item.name + ":", statusColored)
     }
     
     // Progress bar template
-    progressTemplate := color.Parse("[fg=cyan][0][reset]/[fg=cyan][1][reset] [fg=green][2][reset]%")
+    progressTemplate := crayon.Parse("[fg=cyan][0][reset]/[fg=cyan][1][reset] [fg=green][2][reset]%")
     
     total := 100
     for i := 0; i <= total; i += 10 {
         percent := i * 100 / total
-        fmt.Printf("\r%s", progressTemplate.Apply(i, total, percent))
+        fmt.Printf("\r%s", progressTemplate.Sprint(i, total, percent))
         time.Sleep(100 * time.Millisecond)
     }
     fmt.Println()
@@ -257,26 +257,26 @@ package main
 import (
     "fmt"
     "strings"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     
     // Table with colored headers
-    headerTemplate := color.Parse("[bold fg=cyan][0][reset]")
-    rowTemplate := color.Parse("[0]  [fg=yellow][1][reset]  [fg=green][2][reset]")
+    headerTemplate := crayon.Parse("[bold fg=cyan][0][reset]")
+    rowTemplate := crayon.Parse("[0]  [fg=yellow][1][reset]  [fg=green][2][reset]")
     
-    fmt.Println(headerTemplate.Apply(strings.Repeat("─", 40)))
-    fmt.Println(headerTemplate.Apply("USER MANAGEMENT"))
-    fmt.Println(headerTemplate.Apply(strings.Repeat("─", 40)))
+    headerTemplate.Println(strings.Repeat("─", 40))
+    headerTemplate.Println("USER MANAGEMENT")
+    headerTemplate.Println(strings.Repeat("─", 40))
     
-    fmt.Println(rowTemplate.Apply("Alice", "admin", "active"))
-    fmt.Println(rowTemplate.Apply("Bob", "user", "active"))
-    fmt.Println(rowTemplate.Apply("Charlie", "guest", "inactive"))
+    rowTemplate.Println("Alice", "admin", "active")
+    rowTemplate.Println("Bob", "user", "active")
+    rowTemplate.Println("Charlie", "guest", "inactive")
     
     // Nested templates
-    errorTemplate := color.Parse("[bold fg=red][0][reset]: [1]")
-    suggestionTemplate := color.Parse("[fg=yellow]Suggestion: [0][reset]")
+    errorTemplate := crayon.Parse("[bold fg=red][0][reset]: [1]")
+    suggestionTemplate := crayon.Parse("[fg=yellow]Suggestion: [0][reset]")
     
     errors := []struct{
         code string
@@ -289,8 +289,8 @@ func main() {
     }
     
     for _, err := range errors {
-        fmt.Println(errorTemplate.Apply(err.code, err.msg))
-        fmt.Println("  " + suggestionTemplate.Apply(err.suggestion))
+        errorTemplate.Println(err.code, err.msg)
+        fmt.Println("  " + suggestionTemplate.Sprint(err.suggestion))
         fmt.Println()
     }
 }
@@ -302,17 +302,17 @@ func main() {
 // file: styles/styles.go - Define your color scheme
 package styles
 
-import "github.com/ph4mished/color"
+import "github.com/ph4mished/crayon"
 
-var Toggle = color.NewColorToggle()
+var Toggle = crayon.NewColorToggle()
 
 var Templates = struct {
-    Success  color.CompiledTemplate
-    Error    color.CompiledTemplate
-    Warning  color.CompiledTemplate
-    Info     color.CompiledTemplate
-    Header   color.CompiledTemplate
-    Flag     color.CompiledTemplate
+    Success  crayon.CompiledTemplate
+    Error    crayon.CompiledTemplate
+    Warning  crayon.CompiledTemplate
+    Info     crayon.CompiledTemplate
+    Header   crayon.CompiledTemplate
+    Flag     crayon.CompiledTemplate
 }{
     Success:  Toggle.Parse("[fg=green bold]✓ [0][reset]"),
     Error:    Toggle.Parse("[fg=red bold]✗ [0][reset]"),
@@ -335,23 +335,23 @@ import (
 )
 
 func ShowHelp() {
-    fmt.Println(styles.Templates.Header.Apply("MyApp Help"))
+    styles.Templates.Header.Println("MyApp Help")
     fmt.Println()
     
-    fmt.Println(styles.Templates.Header.Apply("Usage:"))
+    styles.Templates.Header.Println("Usage:")
     fmt.Println("  myapp [command] [options]")
     fmt.Println()
     
-    fmt.Println(styles.Templates.Header.Apply("Commands:"))
-    fmt.Println(styles.Templates.Flag.Apply("start", "", "Start the application"))
-    fmt.Println(styles.Templates.Flag.Apply("stop", "", "Stop the application"))
-    fmt.Println(styles.Templates.Flag.Apply("status", "", "Check application status"))
+    styles.Templates.Header.Println("Commands:")
+    styles.Templates.Flag.Println("start", "", "Start the application")
+    styles.Templates.Flag.Println("stop", "", "Stop the application")
+    styles.Templates.Flag.Println("status", "", "Check application status")
     fmt.Println()
     
-    fmt.Println(styles.Templates.Header.Apply("Options:"))
-    fmt.Println(styles.Templates.Flag.Apply("-h", "--help", "Show this help"))
-    fmt.Println(styles.Templates.Flag.Apply("-v", "--version", "Show version"))
-    fmt.Println(styles.Templates.Flag.Apply("-d", "--debug", "Enable debug mode"))
+    styles.Templates.Header.Println("Options:")
+    styles.Templates.Flag.Println("-h", "--help", "Show this help")
+    styles.Templates.Flag.Println("-v", "--version", "Show version")
+    styles.Templates.Flag.Println("-d", "--debug", "Enable debug mode")
 }
 ```
 
@@ -374,12 +374,12 @@ func main() {
     }
     
     // Use color templates throughout
-    fmt.Println(styles.Templates.Success.Apply("Application started"))
+    styles.Templates.Success.Println("Application started")
     
     // Process...
     
-    fmt.Println(styles.Templates.Info.Apply("Processing completed"))
-    fmt.Println(styles.Templates.Success.Apply("All tasks finished"))
+    styles.Templates.Info.Println("Processing completed")
+    styles.Templates.Success.Println("All tasks finished")
 }
 ```
 
@@ -391,7 +391,7 @@ package main
 import(
     "fmt"
     "os"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 // Best practice for CLI applications
 func main() {
@@ -408,13 +408,13 @@ func main() {
     useColor := !noColorFlag && os.Getenv("NO_COLOR") == ""
     
     // Create toggle
-    toggle := color.NewColorToggle(useColor)
+    toggle := crayon.NewColorToggle(useColor)
     
     // All templates use this toggle
     templates := struct {
-        Success color.CompiledTemplate
-        Error   color.CompiledTemplate
-        Header  color.CompiledTemplate
+        Success crayon.CompiledTemplate
+        Error   crayon.CompiledTemplate
+        Header  crayon.CompiledTemplate
     }{
         Success: toggle.Parse("[fg=green]✓ [0][reset]"),
         Error:   toggle.Parse("[fg=red]✗ [0][reset]"),
@@ -422,8 +422,8 @@ func main() {
     }
     
     // Use templates - they'll respect the toggle
-    fmt.Println(templates.Header.Apply("My Application"))
-    fmt.Println(templates.Success.Apply("Started successfully"))
+    templates.Header.Println("My Application")
+    templates.Success.Println("Started successfully")
     
     // If --no-color was used or NO_COLOR is set,
     // outputs will be plain text without escape codes
@@ -437,12 +437,12 @@ package main
 
 import (
     "fmt"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     // Template for showing validation errors
-    validationTemplate := color.Parse("[fg=red]• [0]: [1][reset]")
+    validationTemplate := crayon.Parse("[fg=red]• [0]: [1][reset]")
     
     errors := map[string]string{
         "username": "Must be at least 3 characters",
@@ -450,13 +450,13 @@ func main() {
         "password": "Must contain uppercase and numbers",
     }
     
-    fmt.Println(color.Parse("[bold fg=yellow]Validation Errors:[reset]").Apply())
+    crayon.Parse("[bold fg=yellow]Validation Errors:[reset]").Println()
     for field, message := range errors {
-        fmt.Println(validationTemplate.Apply(field, message))
+        validationTemplate.Println(field, message)
     }
     
     // Template with conditional formatting
-    scoreTemplate := color.Parse("[0]: [1]")
+    scoreTemplate := crayon.Parse("[0]: [1]")
     
     scores := []struct{
         name string
@@ -479,8 +479,8 @@ func main() {
             scoreColor = "[fg=red]"
         }
         
-        coloredScore := color.Parse(scoreColor + fmt.Sprint(s.score)+ "[reset]").Apply()
-        fmt.Println(scoreTemplate.Apply(s.name, coloredScore))
+        coloredScore := crayon.Parse(scoreColor + fmt.Sprint(s.score)+ "[reset]").Sprint()
+        scoreTemplate.Println(s.name, coloredScore)
     }
 }
 ```
@@ -489,12 +489,12 @@ func main() {
 ```go
 // Good pattern
 var appTemplates struct {
-    Success color.Template
-    Error   color.Template
+    Success crayon.Template
+    Error   crayon.Template
 }
 
 func init() {
-    toggle := color.NewColorToggle()
+    toggle := crayon.NewColorToggle()
     appTemplates.Success = toggle.Parse("[fg=green] [0][reset]")
     appTemplates.Error = toggle.Parse("[fg=red] [0][reset]")
 }
@@ -503,8 +503,8 @@ func init() {
 func processItems(items []string) {
     for _, item := range items {
         // DON'T DO THIS - parses every iteration!
-        tmpl := color.Parse("[fg=blue]" + item + "[reset]")
-        fmt.Println(tmpl.Apply())
+        tmpl := crayon.Parse("[fg=blue]" + item + "[reset]")
+        tmpl.Println()
     }
 }
 ```
@@ -517,35 +517,35 @@ package main
 import (
     "fmt"
     "time"
-    "github.com/ph4mished/color"
+    "github.com/ph4mished/crayon"
 )
 
 func main() {
     const iterations = 1000000
     
     // Method 1: Parse once, apply many
-    template := color.Parse("[bold fg=red][0][reset] [fg=green][1][reset]")
+    template := crayon.Parse("[bold fg=red][0][reset] [fg=green][1][reset]")
     
     start := time.Now()
     for i := 0; i < iterations; i++ {
-        template.Apply(fmt.Sprintf("Item%d", i), fmt.Sprintf("Value%d", i))
+        template.Sprint(fmt.Sprintf("Item%d", i), fmt.Sprintf("Value%d", i))
     }
     fmt.Printf("Template reuse: %v\n", time.Since(start))
     
     // Method 2: Parse every time
     start = time.Now()
     for i := 0; i < iterations; i++ {
-        color.Parse(fmt.Sprintf("[bold fg=red]Item%d[reset] [fg=green]Value%d[reset]", i, i)).Apply()
+        crayon.Parse(fmt.Sprintf("[bold fg=red]Item%d[reset] [fg=green]Value%d[reset]", i, i)).Sprint()
     }
     fmt.Printf("Parse every time: %v\n", time.Since(start))
     
     // Method 3: Manual concatenation
     start = time.Now()
     for i := 0; i < iterations; i++ {
-        _ = color.ParseColor("fg=red bold") + fmt.Sprintf("Item%d", i) + 
-            color.ParseColor("reset") + " " + 
-            color.ParseColor("fg=green") + fmt.Sprintf("Value%d", i) + 
-            color.ParseColor("reset")
+        _ = crayon.ParseColor("fg=red bold") + fmt.Sprintf("Item%d", i) + 
+            crayon.ParseColor("reset") + " " + 
+            crayon.ParseColor("fg=green") + fmt.Sprintf("Value%d", i) + 
+            crayon.ParseColor("reset")
     }
     fmt.Printf("Manual concatenation: %v\n", time.Since(start))
 }
@@ -630,7 +630,6 @@ Manual concatenation: 2.651576062s
 | `italic=reset` | Reset italic style only |
 | `underline=reset` | Reset underline style only |
 | `blink=reset` | Reset blink style only |
-| `blinkfast=reset` | Reset fast blink style only |
 | `reverse=reset` | Reset reverse style only |
 | `hidden=reset` | Reset hidden style only |
 | `strike=reset` | Reset strikethrough style only |
@@ -690,8 +689,8 @@ We welcome contributions! Here's how you can help:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ph4mished/color.git
-cd color
+git clone https://github.com/ph4mished/crayon.git
+cd crayon
 
 # Run tests
 go test 

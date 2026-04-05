@@ -1,4 +1,4 @@
-package color
+package crayon
 
 import (
   "fmt"
@@ -9,6 +9,9 @@ import (
 )
 
 
+// FIXES THAT ARE IN SESSION
+// - Windows cmd compatibility
+// - 256 fallback if terminal doesnt have true color support
 
 //===========================================
 //  COLOR VALIDATION
@@ -80,7 +83,7 @@ func IsSupportedColor(input string) bool {
  
 
 func readRGB(rgbCode string) ([]int, bool) {
-  //fg=rgb()
+  //fg=rgb(rrr,ggg,bbb)
   var result []int
   end := len(rgbCode) - 1
   numbers := strings.Split(rgbCode[7:end], ",")
@@ -95,18 +98,30 @@ func readRGB(rgbCode string) ([]int, bool) {
   return result, true
 }
 
+
 //======================================
 // COLOR PARSING
 //======================================
+func parseAnsi(colorCode string, ansiAppend string) string {
+  if strings.HasPrefix(colorCode, "bg="){
+    return return fmt.Sprintf("\033[48;%sm", ansiAppend)
+  }
+  else if strings.HasPrefix(colorCode, "fg="){
+    return fmt.Sprintf("\033[38;%sm", ansiAppend)
+  }
+  return ""
+}
+
 
 func parseRGBToAnsiCode(rgbCode string) string {
   if supportsTrueColor(){
     RGB, _ := readRGB(rgbCode)
-    if strings.HasPrefix(rgbCode, "bg="){
+    return parseAnsi(rgbCode, fmt.Sprintf("2;%d;%d;%d", RGB[0], RGB[1], RGB[2]))
+    /*if strings.HasPrefix(rgbCode, "bg="){
       return fmt.Sprintf("\033[48;2;%d;%d;%dm", RGB[0], RGB[1], RGB[2])     
     } else if strings.HasPrefix(rgbCode, "fg="){
       return fmt.Sprintf("\033[38;2;%d;%d;%dm", RGB[0], RGB[1], RGB[2])     
-    }
+    }*/
   }
   return ""
 }
@@ -119,11 +134,13 @@ func parseHexToAnsiCode(hexCode string) string {
       G, _ := strconv.ParseInt(hexCode[6:8], 16, 32)
       B, _ := strconv.ParseInt(hexCode[8:10], 16, 32)
 
-      if strings.HasPrefix(hexCode, "bg="){
+      return parseAnsi(hexCode, fmt.Sprintf("2;%d;%d;%d", R, G, B))
+
+      /*if strings.HasPrefix(hexCode, "bg="){
         return fmt.Sprintf("\033[48;2;%d;%d;%dm", R, G, B)     
       } else if strings.HasPrefix(hexCode, "fg="){
         return fmt.Sprintf("\033[38;2;%d;%d;%dm", R, G, B)     
-      }
+      }*/
     }
     //fallback to 256. [Not Yet]
   }
@@ -139,12 +156,13 @@ func parseHexToAnsiCode(hexCode string) string {
    256 palette support syntax will be [fg=214] = foreground color and [bg=214] = background color*/
 
 func parse256ColorCode(colorCode string) string {
-  if strings.HasPrefix(colorCode, "bg="){
+  /*if strings.HasPrefix(colorCode, "bg="){
     return fmt.Sprintf("\033[48;5;%sm", colorCode[3:])     
   } else if strings.HasPrefix(colorCode, "fg="){
     return fmt.Sprintf("\033[38;5;;%sm", colorCode[3:])     
-  }
-  return ""
+  }*/
+  return parseAnsi(colorCode, fmt.Sprintf("5;%s", colorCode[3:]))
+  //return ""
 }
 
 

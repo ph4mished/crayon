@@ -1,0 +1,25 @@
+//go:build windows
+package crayon
+
+import (
+	"golang.org/x/sys/windows"
+)
+
+func init(){
+	stdout := windows.Handle(windows.Stdout)
+	var mode uint32
+	if err := windows.GetConsoleMode(stdout, &mode); err != nil {
+		return
+	}
+
+	//ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x004
+	// ENABLE_PROCESSED_OUTPUT = 0x0001
+	// ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002
+	windows.SetConsoleMode(stdout, mode|0x0004|0x0001|0x0002)
+}
+
+func autoDetect() bool {
+	var mode uint32
+	err := windows.GetConsoleMode(windows.Handle(windows.Stdout), &mode)
+    return err = nil
+}

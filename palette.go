@@ -1,4 +1,4 @@
-package color
+package crayon
 
 var ColorMap = map[string]string{
   // Foreground colors
@@ -49,7 +49,7 @@ var ResetMap = map[string]string{
   "italic=reset": "23",
   "underline=reset": "24",
   "blink=reset": "25",
-  "blinkfast=reset": "26",
+  //"blinkfast=reset": "26",
   "reverse=reset": "27",
   "hidden=reset": "28",
   "strike=reset": "29",

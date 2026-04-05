@@ -1,4 +1,4 @@
-package color
+package crayon
 
 import (
 	"fmt"
@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"os"
 	//uncomment after moving to version 1.24
-	//"golang.org/x/term"
+	"golang.org/x/term"
 )
 
 type TempPart struct {
@@ -29,12 +30,13 @@ func autoDetect() bool {
     return false	
   }
   //uncomment after moving to version 1.24
-  //return term.isTerminal(int(os.Stdout.Fd()))//{
+  return term.isTerminal(int(os.Stdout.Fd()))//{
 
   //}
   //comment after moving to version 1.24
-  fileInfo, _ := os.Stdout.Stat()
-  return (fileInfo.Mode() & os.ModeCharDevice) != 0
+  //fileInfo, _ := os.Stdout.Stat()
+  //os.ModeCharDevice should be replace with a cross platform version because this behaves differently on windows.
+  //return (fileInfo.Mode() & os.ModeCharDevice) != 0
 }
 
 //should auto detect tty by default
@@ -157,7 +159,8 @@ func allDigits(s string) bool {
 }
   
 
-func (temp CompiledTemplate) Apply(args ...any) string {
+//apply will be a private func
+func (temp CompiledTemplate) apply(args ...any) string {
   //Calculate estimated size for optimization
   var totalArgLength int
   for _, arg := range args{
@@ -181,3 +184,69 @@ func (temp CompiledTemplate) Apply(args ...any) string {
 }
 
 
+
+//=======================
+// PRINT
+//=======================
+func (temp CompiledTemplate) Println(args ..any) {
+	fmt.Println(temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Printf(format string, args ..any) {
+	fmt.Printf(format, temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Print(args ..any) {
+	fmt.Print(temp.apply(args...))
+}
+
+
+
+
+//=======================
+// EPRINT
+//=======================
+func (temp CompiledTemplate) Eprintln(args ..any) {
+	fmt.Fprintln(os.Stderr, temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Eprintf(format string, args ..any) {
+	fmt.Fprintf(os.Stderr, format, temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Eprint(args ..any) {
+	fmt.Fprint(os.Stderr, temp.apply(args...))
+}
+
+
+
+//=======================
+// FPRINT
+//=======================
+func (temp CompiledTemplate) Fprintln(w io.Writer, args ..any) (n int, err error) {
+	return fmt.Fprintln(w, temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Fprintf(w io.Writer, format string, args ..any) (n int, err error) {
+	return fmt.Fprintf(w, format, temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Fprint(w io.Writer, args ..any) (n int, err error){
+	return fmt.Fprint(w, temp.apply(args...))
+}
+
+
+//=======================
+// SPRINT
+//=======================
+func (temp CompiledTemplate) Sprintln(args ..any) string {
+	return fmt.Sprintln(temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Sprintf(args ..any) string{
+	return fmt.Sprintln(temp.apply(args...))
+}
+
+func (temp CompiledTemplate) Sprint(args ..any) string {
+	return temp.apply(args...)
+}
