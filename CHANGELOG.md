@@ -1,0 +1,13 @@
+# Changelog
+
+## [0.4.0] - 2026-04-06
+
+### Added
+- Inline padding in placeholders
+
+---
+
+## [0.3.0] - 2026-04-06
+
+### Added
+- Color support on windows
