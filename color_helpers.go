@@ -11,9 +11,9 @@ import (
 // Cross platform support [DONE]
 // RGB-TO-256 fallback [DONE]
 // Dumb terminals [YET TO KNOW ITS WORKINGS]
-// Escape system [NOT YET]
+// Escape system [DONE]
 // Fast Parsing [IN PROGRESS]
-// 256 to ansi colors for terminals that dont support 256 [IN PROGRESS]
+// 256 to ansi colors for terminals that dont support 256 [DONE]
 // ========== END =============
 
 
@@ -55,6 +55,10 @@ func rgbTo256Index(r, g, b int) int {
 //===========================================
 //  COLOR VALIDATION
 //===========================================
+func hasValidPrefix(inputCode string) bool {
+	return (strings.HasPrefix(inputCode, "fg=") || strings.HasPrefix(inputCode, "bg="))
+}
+
 func isHexCode(hexCode string) bool{
 	for _, ch := range hexCode {
 		//if !isHexDigit(byte(ch)){
@@ -65,13 +69,9 @@ func isHexCode(hexCode string) bool{
 	return true
 }
 
-//func isHexDigit(c byte) bool {
-//	return c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'
-//}
-
 //this one also reads the value and throws it away
 func isValidHex(hexCode string) bool {
-	if len(hexCode) == 10 && (strings.HasPrefix(hexCode, "fg=#") || strings.HasPrefix(hexCode, "bg=#")) {
+	if len(hexCode) == 10 && hasValidPrefix(hexCode) {
 		if len(hexCode[4:]) == 6 || isHexCode(hexCode[4:]) {
 			return true
 		}
@@ -80,21 +80,20 @@ func isValidHex(hexCode string) bool {
 }
 
 
-//this one also reads the value and throws it away
-func isValid256Code(paletteCode string) bool {
-	if len(paletteCode) >= 4 && len(paletteCode) <= 6 && (strings.HasPrefix(paletteCode, "fg=") || strings.HasPrefix(paletteCode, "bg=")) {
+func isValid256Code(paletteCode string) (int, bool) {
+	if len(paletteCode) >= 4 && len(paletteCode) <= 6 && hasValidPrefix(paletteCode) {
 		parsedInt, err := strconv.Atoi(paletteCode[3:])
 		if err != nil {
-			return false
+			return 0, false
 		}
-		return parsedInt >= 0 && parsedInt <= 255
+		return parsedInt, parsedInt >= 0 && parsedInt <= 255
 	}
-	return false
+	return 0, false
 }
 
 func isValidRGB(rgbCode string) ([]int, bool) {
 	//includes positions 3,4,5,6 excludes position 7
-	if len(rgbCode) >= 13 && len(rgbCode) <= 19 && (strings.HasPrefix(rgbCode, "fg=rgb(") || strings.HasPrefix(rgbCode, "bg=rgb(")) && strings.HasSuffix(rgbCode, ")") {
+	if len(rgbCode) >= 13 && len(rgbCode) <= 19 && hasValidPrefix(rgbCode) && strings.HasPrefix(rgbCode[3:7], "rgb(") && strings.HasSuffix(rgbCode, ")") {
 		//extract content to see if each value is in 0..255 and are numbers
 		seqNumbers, boolean := parseRGB(rgbCode)
 		//true means successfully extracted and are numbers
@@ -139,7 +138,7 @@ func parseRGB(rgbCode string) ([]int, bool) {
 	for _, numStr := range numbers {
 		num, err := strconv.Atoi(numStr)
 		if err != nil {
-			fmt.Printf("Error parsing %s: %v", numStr, err)
+			//fmt.Printf("Error parsing %s: %v", numStr, err)
 			return nil, false
 		}
 		result = append(result, num)
@@ -150,17 +149,29 @@ func parseRGB(rgbCode string) ([]int, bool) {
 // ======================================
 // COLOR PARSING
 // ======================================
-func parseAnsi(colorCode string, ansiAppend string) string {
+func parseAnsi(colorCode string, ansiAppend string, notAnsi16 bool=true) string {
+	
 	if strings.HasPrefix(colorCode, "bg=") {
-		return fmt.Sprintf("\033[48;%sm", ansiAppend)
+		if notAnsi16{
+			return fmt.Sprintf("\033[48;%sm", ansiAppend)
+		} else {
+			_, ansiInt := strconv.Atoi(ansiAppend)
+		ansiInt = ansiInt + 10
+		return fmt.Sprintf("\033[%dm", ansiInt)
+		}
+
 	} else if strings.HasPrefix(colorCode, "fg=") {
-		return fmt.Sprintf("\033[38;%sm", ansiAppend)
+		if notAnsi16{
+			return fmt.Sprintf("\033[38;%sm", ansiAppend)
+		} else {
+			return fmt.Sprintf("\033[%sm", ansiAppend)
+		}
 	}
+    
 	return ""
 }
 
 func parseRGBToAnsiCode(rgbCode string, RGB []int) string {
-	//RGB, _ := readRGB(rgbCode)
 	if supportsTrueColor() {
 		return parseAnsi(rgbCode, fmt.Sprintf("2;%d;%d;%d", RGB[0], RGB[1], RGB[2]))
 	}
@@ -169,7 +180,7 @@ func parseRGBToAnsiCode(rgbCode string, RGB []int) string {
 		return parseAnsi(rgbCode, fmt.Sprintf("5;%d", rgbTo256Index(RGB[0], RGB[1], RGB[2])))
 	}
 	//ansi 16 fallback
-	return parseAnsi(rgbCode, fmt.Sprintf("5;%d", ansi256ToAnsi16Lut[rgbTo256Index(RGB[0], RGB[1], RGB[2])]))
+	return parseAnsi(rgbCode, fmt.Sprint(ansi256ToAnsi16Lut[rgbTo256Index(RGB[0], RGB[1], RGB[2])]), false)
 }
 
 func parseHexToAnsiCode(hexCode string) string {
@@ -177,16 +188,7 @@ func parseHexToAnsiCode(hexCode string) string {
 		R, _ := strconv.ParseInt(hexCode[4:6], 16, 32)
 		G, _ := strconv.ParseInt(hexCode[6:8], 16, 32)
 	    B, _ := strconv.ParseInt(hexCode[8:10], 16, 32)
-
-		if supportsTrueColor() {
-			return parseAnsi(hexCode, fmt.Sprintf("2;%d;%d;%d", R, G, B))
-		}
-		//256 palette fallback
-		if supports256Color(){
-		    return parseAnsi(hexCode, fmt.Sprintf("5;%d", rgbTo256Index(int(R), int(G), int(B))))
-		}
-		//ansi 16 fallback
-	    return parseAnsi(hexCode, fmt.Sprintf("5;%d", ansi256ToAnsi16Lut[rgbTo256Index(int(R), int(G), int(B))]))
+		return parseRGBToAnsiCode(hexCode, []int{R, G, B})
 }
 
 /* Note:
@@ -197,8 +199,11 @@ so the second row of number tells what color mode it is (2: rgb(24 bits), 245)
  5 is for 256 palette(index 196)
  256 palette support syntax will be [fg=214] = foreground color and [bg=214] = background color*/
 
-func parse256ColorCode(colorCode string) string {
-	return parseAnsi(colorCode, fmt.Sprintf("5;%s", colorCode[3:]))
+func parse256ColorCode(colorCode string, paletteCode int) string {
+	if supports256Color(){
+		return parseAnsi(colorCode, fmt.Sprintf("5;%s", paletteCode))
+	}
+	return parseAnsi(hexCode, fmt.Sprint(ansi256ToAnsi16Lut[paletteCode]), false)
 }
 
 
@@ -218,8 +223,9 @@ func ParseColor(color string) string {
 		return fmt.Sprintf("\033[%sm", code)
 	}
 
-	if isValid256Code(color) {
-		return parse256ColorCode(color)
+
+	if palette, ok := isValid256Code(color); ok{
+		return parse256ColorCode(color, palette)
 	}
 
 	if isValidHex(color) {
