@@ -1,5 +1,3 @@
-// Package crayon provides terminal colors and styles for Go.
-// A better go doc is needed to be written
 package crayon
 
 import (
