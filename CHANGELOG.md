@@ -5,7 +5,7 @@
 ### Added
 - True color to 256 color palette fallback
 - Changed syntax of light colors (lightred ==> lred)
-- Added escape system [<content>]
+- Added escape system `[<content>]`
 - Dumb terminal detection
 
 ### Changed
