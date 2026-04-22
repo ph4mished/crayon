@@ -1,8 +1,22 @@
 package crayon
 
-// =============================
+
+type ColorToggle struct {
+	EnableColor bool
+}
+
+//=============================
 // COLOR TOGGLE
-// =============================
+//=============================
+
+func autoDetect() bool {
+	if _, exists := os.LookupEnv("NO_COLOR"); exists {
+		return false
+	}
+	return term.IsTerminal(int(os.Stdout.Fd()))
+}
+
+
 // Should auto detect tty by default
 func NewColorToggle(enableColor ...bool) *ColorToggle {
 	var colorEnabled bool

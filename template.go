@@ -73,6 +73,14 @@ func parseLoop(input string, enableColor bool) ([]TempPart, string) {
 			currentText += char
 		}
 	}
+
+	//Handle unclosed sequence at the end of input
+	if inReadSequence && len(contentSequence) > 0 {
+		//Treat unclosed bracket as literal
+		parts = flushText(parts, currentText)
+		parts = append(parts, TempPart{Text: "[" + contentSequence, Index: -1, FormatStr: ""})
+		currentText = ""
+	}
 	return parts, currentText
 }
 
@@ -190,6 +198,7 @@ func isValidPlaceholder(input string) bool {
 
 func handlePlaceholder(parts []TempPart, contentSequence string) []TempPart {
 	//digit boundary guard to prevent overflow
+	//fmt.Println("HANDLING PLACEHOLDERS: ", contentSequence)
 	index, err := strconv.Atoi(contentSequence)
 	if err == nil && index >= 0 && index <= 999 {
 		return append(parts, TempPart{Text: "", Index: index, FormatStr: ""})
@@ -292,7 +301,6 @@ func allDigits(s string) bool {
 //=============================
 // APPLY
 //=============================
-//what if sum of apply(args) is greater than estimation 
 func (temp CompiledTemplate) apply(args ...any) string {
 	//Calculate estimated size for optimization
 	var totalArgLength int
