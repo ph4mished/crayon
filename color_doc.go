@@ -208,12 +208,9 @@
 //	command.Println("stop", "Stop the application")
 //	command.Println("status", "Check status")
 //
-// # Contributing
+// Any bug fixes or issues
+// see => https://github.com/phamio/crayon
 //
-// Contributions are welcome! Areas needing improvement include:
-//   - Windows testing across different terminals
-//   - Performance optimizations
-//   - Additional test coverage
 //
 // # License
 //
