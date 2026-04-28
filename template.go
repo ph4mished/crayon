@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 import (
 	"fmt"
@@ -11,7 +11,11 @@ import (
 type TempPart struct {
 	Text      string
 	Index     int
-	FormatStr string
+	Align     rune
+	Width     int
+	FillChar  string
+	//FormatStr string
+
 }
 
 type CompiledTemplate struct {
@@ -58,7 +62,7 @@ func parseLoop(input string, enableColor bool) ([]TempPart, string) {
 	if inReadSequence && len(contentSequence) > 0 {
 		//Treat unclosed bracket as literal
 		parts = flushText(parts, currentText)
-		parts = append(parts, TempPart{Text: "[" + contentSequence, Index: -1, FormatStr: ""})
+		parts = append(parts, TempPart{Text: "[" + contentSequence, Index: -1, Align: 0, Width: 0, FillChar: "" })
 		currentText = ""
 	}
 	return parts, currentText
@@ -112,10 +116,10 @@ func isColorSequence(allWords []string) bool {
 func handleColorSequence(parts []TempPart, words []string, enableColor bool) []TempPart {
 	if enableColor {
 		for _, w := range words {
-			parts = append(parts, TempPart{Text: parseColor(w), Index: -1, FormatStr: ""})
+			parts = append(parts, TempPart{Text: parseColor(w), Index: -1, Align: 0, Width: 0, FillChar: "" })
 		}
 	} else {
-		parts = append(parts, TempPart{Text: "", Index: -1, FormatStr: ""})
+		parts = append(parts, TempPart{Text: "", Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
 	return parts
 }
@@ -131,7 +135,7 @@ func handleNonColorSequence(parts []TempPart, contentSequence string) []TempPart
 	}
 
 	//unrecognized -  pass through as literal
-	return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, FormatStr: ""})
+	return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 }
 
 //=============================
@@ -168,32 +172,39 @@ func handlePlaceholder(parts []TempPart, contentSequence string) []TempPart {
 	//digit boundary guard to prevent overflow
 	index, err := strconv.Atoi(contentSequence)
 	if err == nil && index >= 0 && index <= 999 {
-		return append(parts, TempPart{Text: "", Index: index, FormatStr: ""})
+		return append(parts, TempPart{Text: "", Index: index, Align: 0, Width: 0, FillChar: "" })
 	}
 	//out of range - treat as literal
-	return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, FormatStr: ""})
+	return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 }
 
 func handlePaddedPlaceholder(parts []TempPart, contentSequence string) []TempPart {
-	//[0:>20] stripped of its brackets ==> 0:>20
-	splitWord := strings.SplitN(contentSequence, ":", 2) // ==> [0 >20]
-	if len(splitWord) != 2 {
-		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, FormatStr: ""})
+	//[0:>20] stripped of its brackets ==> 0:>20:=
+	splitWord := strings.SplitN(contentSequence, ":", 3) // ==> [0 >20]
+	if len(splitWord) < 2 {
+		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
 	indexStr := splitWord[0]
 	padStr := splitWord[1]
+	var fillChar string
+	if len(splitWord) == 3 {
+		fillChar = splitWord[2]
+	} else {
+		fillChar = " "
+	}
 	//parse indexStr
 	index, err := strconv.Atoi(indexStr)
 	if err != nil || index < 0 || index > 999 {
-		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, FormatStr: ""})
+		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
 
 	//parse the padStr
 	align, width, boolean:= parseAlignWidth(padStr)
 	if !boolean {
-		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, FormatStr: ""})
+		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
-	return append(parts, TempPart{Text: "", Index: index, FormatStr: buildFormatStr(align, width)})
+	return append(parts, TempPart{Text: "", Index: index, Align: align, Width: width, FillChar: fillChar}) //FormatStr: buildFormatStr(align, width)
+	//Align: 0, Width: 0, FillChar: "" 
 }
 
 
@@ -223,21 +234,54 @@ func parseAlignWidth(input string) (rune, int, bool) {
 	return align, width, true
 }
 
-func buildFormatStr(align rune, width int) string {
+func centerAlign(s string, width int, fillChar string) string {
+    //if fillChar == ""{
+    //	fillChar = " "
+    //}
+	if len(s) >= width {
+		return s
+	}
+	leftPad := (width - len(s))/ 2
+	rightPad := width - len(s) - leftPad
+	return strings.Repeat(fillChar, leftPad) + s + strings.Repeat(fillChar, rightPad)
+}
+
+func leftAlign(s string, width int, fillChar string) string {
+	if len(s) >= width {
+		return s
+	}
+	rightPad := width - len(s)
+	return s + strings.Repeat(fillChar, rightPad)
+}
+
+func rightAlign(s string, width int, fillChar string) string {
+	if len(s) >= width {
+		return s
+	}
+	leftPad := width - len(s)
+	return strings.Repeat(fillChar, leftPad) + s
+}
+
+
+func applyPadding(value string, align rune, width int, fillChar string) string {
 	switch align {
 	//left align
 	case '<':
-		return fmt.Sprintf("%%-%ds", width)
+		return leftAlign(value, width, fillChar)//fmt.Sprintf("%%-%ds", width)
 		//right align
 	case '>':
-		return fmt.Sprintf("%%%ds", width)
+		return rightAlign(value, width, fillChar)//fmt.Sprintf("%%%ds", width)
+		//centre align
+    case '^':
+	    return centerAlign(value, width, fillChar)
 	}
-	return ""
+
+	return value
 }
 
 func flushText(parts []TempPart, currentText string) []TempPart {
 	if len(currentText) > 0 {
-		parts = append(parts, TempPart{Text: currentText, Index: -1, FormatStr: ""})
+		parts = append(parts, TempPart{Text: currentText, Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
 	return parts
 }
@@ -270,8 +314,9 @@ func (temp CompiledTemplate) apply(args ...any) string {
 			result.WriteString(part.Text)
 		} else if part.Index < len(args) {
 			value := fmt.Sprint(args[part.Index])
-			if part.FormatStr != "" {				
-				value = fmt.Sprintf(part.FormatStr, value)
+			//if part.FormatStr != "" {		
+			if part.Width > 0 {		
+				value = applyPadding(value, part.Align, part.Width, part.FillChar)//fmt.Sprintf(part.FormatStr, value)
 			}
 			result.WriteString(value)
 		}

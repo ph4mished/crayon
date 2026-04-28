@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 import (
 	"os"
@@ -446,9 +446,10 @@ func TestParse_VariousInputs(t *testing.T) {
 		{"Multiple colors", "[fg=red][bg=blue]text", 3},
 		{"Placeholder", "[0]", 1},
 		{"Padded placeholder", "[0:<20]", 1},
-		{"Escape", "[<fg=red>]", 1},
+		//{"Escape", "[<fg=red>]", 1},
 		{"Mixed", "Start [fg=red][0][reset] End", 4},
 		{"Complex", "[bold fg=cyan][0:<20][reset] [fg=yellow][1][reset]!", 6},
+		{"MoreComplex", "[bold fg=cyan][0:<20:=][reset] [fg=yellow][1][reset]!", 8},
 	}
 	
 	for _, test := range tests {

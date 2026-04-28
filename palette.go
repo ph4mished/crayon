@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 var colorMap = map[string]string{
 	// Foreground colors

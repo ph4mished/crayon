@@ -1,12 +1,22 @@
 # Changelog
+All notable changes to Inkstamp will be documented here
 
-## [unversioned] 
+## [0.5.1] - 2026-04-28 
 
 ### Added
+- Center alignment ('^') for placeholders
+- Custom fill characters (`[0:<20:.]`, `[0:>10:=]`)
+- `FillChar`, `Width`, `Align` fields in `TempPart` (replaces `FormatStr`)
+- Placeholder now supports fill characters with new syntax as `[index:alignmentWidth:fillCharacter]`
 
 ### Changed
+- Renamed from Crayon to Inkstamp
+- Repository moved to `https://github.com/inkstamp/inkstamp`
 
-### Fixed
+### Removed
+- `FormatStr` field from internal `TempPart` struct
+
+
 ## [0.5.0] - 2026-04-24
 
 ### Added

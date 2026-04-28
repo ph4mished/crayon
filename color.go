@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 import (
 	//"fmt"
@@ -64,3 +64,4 @@ func (toggle *ColorToggle) Parse(input string) CompiledTemplate {
 		TotalLength: len(input),
 	}
 }
+

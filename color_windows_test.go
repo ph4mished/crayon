@@ -1,5 +1,5 @@
 //go:build windows
-package crayon
+package inkstamp
 
 import (
 	"testing"

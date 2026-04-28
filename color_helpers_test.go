@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 import (
 	"os"

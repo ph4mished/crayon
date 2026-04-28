@@ -1,4 +1,4 @@
-package crayon
+package inkstamp
 
 import (
 	//"bytes"
@@ -123,6 +123,53 @@ func TestHandleCloseBrackets_ColorSequenceDisabled(t *testing.T) {
 		if part.Text != ""{
 			t.Errorf("Part %d: expected empty text, got '%s'", i, part.Text)
 		}
+	}
+}
+
+
+
+
+//=================================
+// ALIGN TESTS
+//=================================
+
+func TestLeftAlign_WithFillChar(t *testing.T) {
+	leftAligned := leftAlign("Hello World", 20, "=")
+	expectedLen := 20
+
+	if len(leftAligned) != expectedLen {
+		t.Errorf("Expected length of leftAligned as %d, got %d", expectedLen, len(leftAligned))
+	}
+
+	if leftAligned != "Hello World=========" {
+		t.Errorf("Expected 'Hello World========', got '%s'", leftAligned)
+	}
+}
+
+
+func TestRightAlign_WithFillChar(t *testing.T) {
+	rightAligned := rightAlign("Hello World", 20, "=")
+	expectedLen := 20
+
+	if len(rightAligned) != expectedLen {
+		t.Errorf("Expected length of rightAligned as %d, got %d", expectedLen, len(rightAligned))
+	}
+
+	if rightAligned != "=========Hello World" {
+		t.Errorf("Expected '========Hello World', got '%s'", rightAligned)
+	}
+}
+
+func TestCenterAlign_WithFillChar(t *testing.T) {
+	centerAligned := centerAlign("Hello, World", 20, "=")
+	expectedLen := 20
+
+	if len(centerAligned) != expectedLen {
+		t.Errorf("Expected length of centerAligned as %d, got %d", expectedLen, len(centerAligned))
+	}
+
+	if centerAligned != "====Hello, World====" {
+		t.Errorf("Expected '====Hello, World====', got '%s'", centerAligned)
 	}
 }
 

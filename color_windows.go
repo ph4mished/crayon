@@ -1,6 +1,6 @@
 //go:build windows
 
-package crayon
+package inkstamp
 
 //This file is meant for windows only
 
