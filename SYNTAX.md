@@ -70,8 +70,8 @@ Example: `[fg=rgb(255,105,180)]Hot pink[reset]`
 ## 256-Color Palette
 | Command | Effect |
 |---------|--------|
-| `fg=#NNN` | 256-color (0-255) for foreground |
-| `bg=#NNN` | 256-color (0-255) for background |
+| `fg=NNN` | 256-color (0-255) for foreground |
+| `bg=NNN` | 256-color (0-255) for background |
 
 Example: `[fg=214]Orange text[reset]`
 
