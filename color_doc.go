@@ -1,27 +1,26 @@
-// Package inkstamp provides a comprehensive terminal styling library for Go,
-// supporting multiple color formats, styles, and automatic fallback across
+// Package inkstamp provides a terminal presentation library for Go,
+// supporting multiple color formats, styles, alignment, padding and automatic fallback across
 // different terminal capabilities.
 //
 // # Overview
 //
-// Inkstamp is a Go port of the Spectra color library, offering a template-based
+// Inkstamp is a cross-platform terminal presentation library built around a template-based
 // approach to terminal styling. It supports named colors, hex codes, RGB values,
 // 256-color palette, and automatic truecolor detection with intelligent fallback
-// chains.
+// chains. Parse once, stamp many times.
 //
 // # Key Features
 //
 //   - Multiple Color Systems: Named colors, hex codes, RGB, 256-color palette
 //   - Full Color Fallback Chain: Automatic downsampling across all color levels
 //     (truecolor → 256 color palette → ANSI 16 colors)
-//   - TrueColor Detection: Automatic detection of terminal truecolor support
-//   - Simple Template System: Easy-to-use templates with placeholders
+//   - Simple Template System: Parse once, reuse many times with placeholders
 //   - Comprehensive Styles: Bold, italic, underline, blink, reverse, hidden, strike-through
 //   - Granular Resets: Individual and full reset codes for precise control
 //   - No Escapes Needed: Texts in [] that aren't colors/styles are left as-is
 //   - Inline Padding: Left and right alignment directly on placeholders
 //   - Cross-Platform: Full support for Windows Terminal, cmd, PowerShell, Linux, and macOS
-//   - Color Toggling: Respects NO_COLOR environment variable and TTY detection
+//   - Color Toggling: Respects NO_COLOR, FORCE_COLOR, TTY detection and CLI flags.
 //
 // # Quick Start
 //
@@ -64,13 +63,22 @@
 //
 // # Placeholders and Padding
 //
-// Placeholders [0] through [999] can be used for dynamic content. Padding  is applied inline:
+// Placeholders [0] through [999] can be used for dynamic content. Padding and alignment is applied
+// inline with optional custom fill characters:
 //
-//	// Left align with width 20
+//	// Left align with width 20, space fill
 //	template := inkstamp.Parse("[0:<20]")
 //
-//	// Right align with width 10
+//	// Right align with width 10, space fill
 //	template := inkstamp.Parse("[0:>10]")
+//
+//	// Center align with width 30, space fill
+//	template := inkstamp.Parse("[0:^30]")
+//
+//  // Custom fill characters
+//  inkstamp.Parse("[0:<30:.]")    // dot leaders
+//  inkstamp.Parse("[0:>10:=]")    // equals fill
+//  inkstamp.Parse("[0:^40:-]")    // dash separator
 //
 //	// Combined with colors
 //	row := inkstamp.Parse("[fg=cyan][0:<20][fg=yellow][1:>10][reset]")
@@ -78,17 +86,39 @@
 //
 //
 //
-// # Color Toggling
+//  # Color Toggling
 //
-// Inkstamp automatically respects NO_COLOR environment variable and TTY detection.
-// Manual control is also available:
+// Inkstamp automatically detects terminal color level capabilities.
+// Manual control is available through options:
 //
-//	// Auto-detect (default)
+//	// Auto-detect stdout and sniff color flags(default)
 //	toggle := inkstamp.NewColorToggle()
 //
-//	// Force colors on/off
-//	forceOn := inkstamp.NewColorToggle(true)
-//	forceOff := inkstamp.NewColorToggle(false)
+//  // Force colors on
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.ForceColor(true)),
+//  )
+//
+//  // Force colors off
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.ForceColor(false)),
+//  )
+//  // Check stderr instead of stdout
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.Stream(os.Stderr),
+//  )
+//
+//  // Disable color flag sniffing
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.FlagToggle(false),
+//  )
+//
+//  // All with force color on
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.Stream(os.Stderr),
+//      inkstamp.FlagToggle(false),
+//      inkstamp.ForceColor(true),
+//  )
 //
 //	// Use with templates
 //	template := toggle.Parse("[fg=green]Success[reset]")
@@ -165,12 +195,7 @@
 //   - Terminal Dependency: Colors only work in terminals that support ANSI escape codes
 //   - Style Support: Some styles (blink, double underline) may not work in all terminals
 //   - Placeholder Limit: Supports [0] through [999]
-//
-// # Environment Variables
-//
-//   - NO_COLOR: When set, disables all color output
-//   - COLORTERM: Used for truecolor detection (truecolor or 24bit)
-//   - TERM: Used for 256-color and dumb terminal detection (contains "256color")
+//   - Inline Padding: Fixed width only — dynamic width or percentage widths not supported
 //
 // # Examples
 //
@@ -208,11 +233,18 @@
 //	command.Println("stop", "Stop the application")
 //	command.Println("status", "Check status")
 //
+//  Example 5:  Library usage (flag sniffing disabled)
+//
+//  toggle := inkstamp.NewColorToggle(
+//      inkstamp.FlagToggle(false),
+//  )
+//  errLog := toggle.Parse("[fg=red bold]Error:[reset] [0]")
+//  warnLog := toggle.Parse("[fg=yellow]Warn:[reset] [0]")
 // Any bug fixes or issues
 // see => https://github.com/inkstamp/inkstamp
 //
 //
 // # License
 //
-// MIT License - see LICENSE file for details.
+// Apache License 2.0 — see LICENSE file for details.
 package inkstamp

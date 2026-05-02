@@ -1,4 +1,4 @@
-# Contributing to Inkstamp
+# Contributing to TermColor
 
 Thanks for your interest
 
@@ -6,8 +6,8 @@ Thanks for your interest
 
 ```bash
 # Clone the repository
-git clone https://github.com/inkstamp/inkstamp.git
-cd inkstamp
+git clone https://github.com/phamio/termcolor.git
+cd termcolor
 
 # Run tests
 go test ./...
@@ -46,6 +46,7 @@ go test -v ./...
 ## Pull Request Guidelines 
 **Each pull request should address one issue**
 
+
 ---
 
 ## Areas for Improvement
@@ -61,7 +62,7 @@ go test -v ./...
 - Create a feature branch (git checkout -b feature/name)
 - Ensure all tests pass (go test ./...)
 - Follow Go conventions(go fmt, go lint)
-- Submit a pull request
+- Submit a pull request to the `main` branch
 
 ---
 

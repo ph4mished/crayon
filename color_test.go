@@ -1,29 +1,17 @@
 package inkstamp
 
 import (
-	"os"
+	//"os"
 	"testing"
 	"strings"
-
 )
+
 
 // =============================
 // NEW COLOR TOGGLE TESTS
 // =============================
 
-func TestNewColorToggle_Default(t *testing.T) {
-	// Save original env
-	origNoColor := os.Getenv("NO_COLOR")
-	origTerm := os.Getenv("TERM")
-	defer func() {
-		os.Setenv("NO_COLOR", origNoColor)
-		os.Setenv("TERM", origTerm)
-	}()
-
-	// Test with TTY-like environment (no NO_COLOR, TERM set)
-	os.Unsetenv("NO_COLOR")
-	os.Setenv("TERM", "xterm-256color")
-	
+func TestNewColorToggle_Default(t *testing.T) {	
 	toggle := NewColorToggle()
 	if toggle == nil {
 		t.Fatal("NewColorToggle() returned nil")
@@ -33,25 +21,26 @@ func TestNewColorToggle_Default(t *testing.T) {
 }
 
 func TestNewColorToggle_WithTrue(t *testing.T) {
-	toggle := NewColorToggle(true)
+	toggle := NewColorToggle(ForceColor(true))
 	if toggle == nil {
 		t.Fatal("NewColorToggle(true) returned nil")
 	}
 	if !toggle.EnableColor {
-		t.Error("NewColorToggle(true) should enable colors")
+		t.Error("NewColorToggle(ForceColor(true)) should enable colors")
 	}
 }
 
 func TestNewColorToggle_WithFalse(t *testing.T) {
-	toggle := NewColorToggle(false)
+	toggle := NewColorToggle(ForceColor(false))
 	if toggle == nil {
 		t.Fatal("NewColorToggle(false) returned nil")
 	}
 	if toggle.EnableColor {
-		t.Error("NewColorToggle(false) should disable colors")
+		t.Error("NewColorToggle(ForceColor(false)) should disable colors")
 	}
 }
 
+/*
 func TestNewColorToggle_MultipleArgs(t *testing.T) {
 	// Only first argument should matter
 	toggle := NewColorToggle(true, false)
@@ -70,7 +59,7 @@ func TestNewColorToggle_NoArgs(t *testing.T) {
 	}
 	// Should use auto-detection (can't predict value, just check it's set)
 	// EnableColor will be true or false based on environment
-}
+}*/
 
 // =============================
 // PARSE FUNCTION TESTS
@@ -185,7 +174,7 @@ func TestParse_OnlyBrackets(t *testing.T) {
 // =============================
 
 func TestColorToggle_Parse_ColorsEnabled(t *testing.T) {
-	toggle := NewColorToggle(true)
+	toggle := NewColorToggle(ForceColor(true))
 	template := toggle.Parse("[fg=red]Hello")
 	
 	// With colors enabled, color tags should be converted to ANSI codes
@@ -204,7 +193,7 @@ func TestColorToggle_Parse_ColorsEnabled(t *testing.T) {
 }
 
 func TestColorToggle_Parse_ColorsDisabled(t *testing.T) {
-	toggle := NewColorToggle(false)
+	toggle := NewColorToggle(ForceColor(false))
 	template := toggle.Parse("[fg=red]Hello")
 	
 	// With colors disabled, color tags should produce empty strings
@@ -226,7 +215,7 @@ func TestColorToggle_Parse_NilToggle(t *testing.T) {
 }
 
 func TestColorToggle_Parse_PreservesText(t *testing.T) {
-	toggle := NewColorToggle(false)
+	toggle := NewColorToggle(ForceColor(false))
 	input := "Hello [fg=red]World[reset]!"
 	template := toggle.Parse(input)
 	
@@ -403,7 +392,7 @@ func BenchmarkParse_ComplexTemplate(b *testing.B) {
 }
 
 func BenchmarkColorToggle_Parse(b *testing.B) {
-	toggle := NewColorToggle(true)
+	toggle := NewColorToggle(ForceColor(true))
 	tmpl := "[fg=red]Hello [bold]World[reset]"
 	
 	b.ResetTimer()
@@ -467,26 +456,25 @@ func TestParse_VariousInputs(t *testing.T) {
 	}
 }
 
-func TestNewColorToggle_VariousArgs(t *testing.T) {
+/*func TestNewColorToggle_VariousArgs(t *testing.T) {
 	tests := []struct {
 		name     string
-		args     []bool
+		args     bool
 		expected *bool // nil means don't check specific value
 	}{
-		{"No args", []bool{}, nil},
-		{"True", []bool{true}, boolPtr(true)},
-		{"False", []bool{false}, boolPtr(false)},
-		{"Multiple", []bool{true, false}, boolPtr(true)},
+		{"True", true, boolPtr(true)},
+		{"False", false, boolPtr(false)},
+		//{"Multiple", []bool{true, false}, boolPtr(true)},
 	}
 	
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var toggle *ColorToggle
-			if len(test.args) == 0 {
-				toggle = NewColorToggle()
-			} else {
-				toggle = NewColorToggle(test.args...)
-			}
+			//if len(test.args) == 0 {
+			//	toggle = NewColorToggle()
+			//} else {
+			//	toggle = NewColorToggle(ForceColor(test.args))
+			//}
 			
 			if toggle == nil {
 				t.Fatal("Toggle should not be nil")
@@ -499,8 +487,8 @@ func TestNewColorToggle_VariousArgs(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
-func boolPtr(b bool) *bool {
+/*func boolPtr(b bool) *bool {
 	return &b
-}
+}*/

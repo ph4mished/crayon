@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to Inkstamp will be documented here
 
+## [0.6.0] - 2026-05-02
+
+### Added
+- Made `https://github.com/phamio/termcolor` internal in inkstamp
+
+### Changed
+- Supported golang version from `go 1.25.2` to `go 1.25.0`
+
+
 ## [0.5.1] - 2026-04-28 
 
 ### Added

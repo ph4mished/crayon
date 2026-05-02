@@ -238,7 +238,7 @@ import (
 )
 
 func main() {
-    // Inkstamp decides - colors on for TTY, off for piped output, and internally parses color flags
+    // Inkstamp decides - colors on for TTY, off for piped output
     toggle := inkstamp.NewColorToggle()
 
     errorTemp := toggle.Parse("[fg=red]Error [0][reset]")
@@ -247,16 +247,23 @@ func main() {
     
 
     // Manual control
-    forceOn := inkstamp.NewColorToggle(inkstamp.ForceColor(true))   // Always show colors
-    streamErr := inkstamp.NewColorToggle(inkstamp.Stream(os.Stdout)) 
+    forceOn := inkstamp.NewColorToggle(true)   // Always show colors
+    forceOff := inkstamp.NewColorToggle(false)     // Never show colors
     
     
     // Use in CLI applications
     //Respect both --no-color flag and NO_COLOR environment variable
-    //User wants to manage --color or --no-color flag on their own (Turn off color flag sniffing)
-    flagOff  := inkstamp.NewColorToggle(inkstamp.FlagToggle(false))
+    noColorFlag = false
+    for _, arg := range os.Args {
+        if arg == "--no-color" {
+            noColorFlag = true
+            break
+        }
+    }
+    useColor := !noColorFlag && os.Getenv("NO_COLOR") == ""
+    appToggle := inkstamp.NewColorToggle(useColor)
     
-    helpTemplate := flag.Parse("[bold fg=cyan][0][reset] [fg=green][1][reset]")
+    helpTemplate := appToggle.Parse("[bold fg=cyan][0][reset] [fg=green][1][reset]")
     helpTemplate.Println("Usage:", "myapp [options]")
 }
 ```
