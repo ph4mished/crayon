@@ -1,10 +1,13 @@
 package inkstamp
 
 import (
-	"os"
+	//"os"
 	"strings"
 	"testing"
+	"github.com/inkstamp/inkstamp/termcolor"
 )
+
+var colorCap = termcolor.Capability()
 
 
 // =============================
@@ -193,7 +196,7 @@ func TestIsValidRGB(t *testing.T) {
 		}
 	}
 }
-
+/*
 // =============================
 // TERMINAL SUPPORT DETECTION
 // =============================
@@ -249,7 +252,7 @@ func TestSupports256Color(t *testing.T) {
 		}
 	}
 }
-
+*/
 // =============================
 // IS SUPPORTED COLOR TESTS
 // =============================
@@ -298,7 +301,7 @@ func TestIsSupportedColor(t *testing.T) {
 }
 
 // =============================
-// PARSE RGB TESTS
+// EXTRACT RGB TESTS
 // =============================
 
 func TestParseRGB(t *testing.T) {
@@ -316,7 +319,7 @@ func TestParseRGB(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, ok := parseRGB(test.input)
+		result, ok := extractRGB(test.input)
 		if ok != test.expectedOk {
 			t.Errorf("parseRGB(%q) ok = %v, expected %v", test.input, ok, test.expectedOk)
 		}
@@ -338,7 +341,7 @@ func TestParseRGB(t *testing.T) {
 // =============================
 
 func TestParseAnsi16_ForeGround(t *testing.T) {
-	result := parseAnsi16("fg=cyan", "36")
+	result := parseAnsi16("fg=cyan", 36)
 	expected := "\033[36m"
 	if result != expected {
 		t.Errorf("parseAnsi(fg) = %q, expected %q", result, expected)
@@ -346,7 +349,7 @@ func TestParseAnsi16_ForeGround(t *testing.T) {
 }
 
 func TestParseAnsi16_BackGround(t *testing.T) {
-	result := parseAnsi16("bg=31", "90")
+	result := parseAnsi16("bg=31", 90)
 	expected := "\033[100m"
 	if result != expected {
 		t.Errorf("parseAnsi(bg) = %q, expected %q", result, expected)
@@ -401,7 +404,7 @@ func TestParseRGBToAnsiCode(t *testing.T) {
 	// Test with mocked terminal capabilities
 	// Note: These tests depend on environment variables
 	rgb := []int{255, 0, 0}
-	result := parseRGBToAnsiCode("fg=rgb(255,0,0)", rgb)
+	result := parseRGBToAnsiCode("fg=rgb(255,0,0)", rgb, colorCap)
 	
 	// Should return some ANSI code (exact value depends on terminal support)
 	if result == "" {
@@ -417,7 +420,7 @@ func TestParseRGBToAnsiCode(t *testing.T) {
 // =============================
 
 func TestParseHexToAnsiCode(t *testing.T) {
-	result := parseHexToAnsiCode("fg=#FF0000")
+	result := parseHexToAnsiCode("fg=#FF0000", colorCap)
 	
 	if result == "" {
 		t.Error("parseHexToAnsiCode returned empty string")
@@ -438,12 +441,12 @@ func TestParseColor_NamedColors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %q) returned empty string", test, colorCap)
 		}
 		if !strings.HasPrefix(result, "\033[") {
-			t.Errorf("parseColor(%q) = %q, expected ANSI escape", test, result)
+			t.Errorf("parseColor(%q, %q) = %q, expected ANSI escape", test, colorCap, result)
 		}
 	}
 }
@@ -454,9 +457,9 @@ func TestParseColor_Styles(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %q) returned empty string", test, colorCap)
 		}
 	}
 }
@@ -467,9 +470,9 @@ func TestParseColor_Resets(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %q) returned empty string", test, colorCap)
 		}
 	}
 }
@@ -480,9 +483,9 @@ func TestParseColor_256Colors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %v) returned empty string", test, colorCap)
 		}
 	}
 }
@@ -494,9 +497,9 @@ func TestParseColor_HexColors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %q) returned empty string", test, colorCap)
 		}
 	}
 }
@@ -510,9 +513,9 @@ func TestParseColor_RGBColors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result == "" {
-			t.Errorf("parseColor(%q) returned empty string", test)
+			t.Errorf("parseColor(%q, %q) returned empty string", test, colorCap)
 		}
 	}
 }
@@ -527,9 +530,9 @@ func TestParseColor_Invalid(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := parseColor(test)
+		result := parseColor(test, colorCap)
 		if result != "" {
-			t.Errorf("parseColor(%q) = %q, expected empty string", test, result)
+			t.Errorf("parseColor(%q, %q) = %q, expected empty string", test, colorCap, result)
 		}
 	}
 }
@@ -557,7 +560,7 @@ func BenchmarkParseColor(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, color := range colors {
-			parseColor(color)
+			parseColor(color, colorCap)
 		}
 	}
 }

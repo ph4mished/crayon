@@ -2,10 +2,10 @@ package inkstamp
 
 import (
 	"fmt"
-	"os"
+	//"os"
 	"strconv"
 	"strings"
-	//use github.com/phamio/termcolor must stay out of users way
+	"github.com/inkstamp/inkstamp/termcolor"
 )
 
 
@@ -60,31 +60,6 @@ func rgbTo256Index(r, g, b int) int {
 }
 
 
-//==================================
-// ANSI TERMINAL SUPPORT DETECTION
-//==================================
-//This only check what the terminal advertises, which isn't always accurate.
-//It has to query the terminal directly
-//Ways to query the terminal
-//echo -e "\e[c"  //What ansi capabilites are supported
-//echo -e "\e[>c" // Which terminal emulator you're actually in
-
-func supportsTrueColor() bool {
-	colorterm := os.Getenv("COLORTERM")
-	return colorterm == "truecolor" || colorterm == "24bit"
-}
-
-func supports256Color() bool {
-	term := os.Getenv("TERM")
-	return strings.Contains(term, "256color")
-}
-
-func supportsNone() bool {
-	noneTerm := os.Getenv("TERM")
-	//return noneTerm == "dumb"
-	return noneTerm == "dumb" || strings.Contains(noneTerm, "mono")
-}
-
 //===========================================
 //  COLOR VALIDATION
 //===========================================
@@ -127,9 +102,9 @@ func isValid256Code(paletteCode string) (int, bool) {
 
 func isValidRGB(rgbCode string) ([]int, bool) {
 	//includes positions 3,4,5,6 excludes position 7
-	if len(rgbCode) >= 13 && len(rgbCode) <= 19 && hasValidPrefix(rgbCode) && strings.HasPrefix(rgbCode[3:7], "rgb(") && strings.HasSuffix(rgbCode, ")") {
+	if len(rgbCode) >= 13 && len(rgbCode) <= 19 && hasValidPrefix(rgbCode) && hasSpecialPrefix(rgbCode, "rgb(") && strings.HasSuffix(rgbCode, ")") {
 		//extract content to see if each value is in 0..255 and are numbers
-		seqNumbers, boolean := parseRGB(rgbCode)
+		seqNumbers, boolean := extractRGB(rgbCode)
 		//true means successfully extracted and are numbers
 		if boolean  && seqNumbers != nil{
 			if len(seqNumbers) != 3 {
@@ -162,7 +137,7 @@ func isSupportedColor(input string) bool {
 	return inColorMap || inResetMap || inStyleMap || isValidHex(input) || valid256 || validRGB
 }
 
-func parseRGB(rgbCode string) ([]int, bool) {
+func extractRGB(rgbCode string) ([]int, bool) {
 	//fg=rgb(rrr,ggg,bbb)
 	var num int
 	var err error
@@ -187,13 +162,13 @@ func parseRGB(rgbCode string) ([]int, bool) {
 // ======================================
 // COLOR PARSING
 // ======================================
-func parseAnsi16(colorCode, ansiAppend string) string {
+func parseAnsi16(colorCode string, ansiAppend int) string {
 	if strings.HasPrefix(colorCode, "bg="){
-		ansiInt, _ := strconv.Atoi(ansiAppend)
-		ansiInt = ansiInt + 10
-		return fmt.Sprintf("\033[%dm", ansiInt)
+		//ansiInt, _ := strconv.Atoi(ansiAppend)
+		bgAnsi := ansiAppend + 10
+		return fmt.Sprintf("\033[%dm", bgAnsi)
 	} else if strings.HasPrefix(colorCode, "fg") {
-		return fmt.Sprintf("\033[%sm", ansiAppend)
+		return fmt.Sprintf("\033[%dm", ansiAppend)
 	}
 	return ""
 }
@@ -211,53 +186,58 @@ func parseAnsi(colorCode, ansiAppend string) string {
 	return ""
 }
 
-func parseRGBToAnsiCode(rgbCode string, RGB []int) string {
-	if supportsTrueColor() {
-		return parseAnsi(rgbCode, fmt.Sprintf("2;%d;%d;%d", RGB[0], RGB[1], RGB[2]))
+
+func parse256ColorCode(colorCode string, paletteCode int, colorCap termcolor.ColorCap) string {
+	switch {
+	case colorCap >= termcolor.Color256:
+		return parseAnsi(colorCode, fmt.Sprintf("5;%d", paletteCode))
+	case colorCap >= termcolor.Color16:
+		return parseAnsi16(colorCode, int(ansi256ToAnsi16Lut[paletteCode]))
+	default:
+		//for case termcolor.ColorNone
+		return ""
 	}
-	//256 palette fallback
-	if supports256Color(){
-		return parseAnsi(rgbCode, fmt.Sprintf("5;%d", rgbTo256Index(RGB[0], RGB[1], RGB[2])))
-	}
-	if !supportsNone() {
-	//ansi 16 fallback
-	return parseAnsi16(rgbCode, fmt.Sprint(ansi256ToAnsi16Lut[rgbTo256Index(RGB[0], RGB[1], RGB[2])]))
-	}
-	return ""
 }
 
-func parseHexToAnsiCode(hexCode string) string {
+
+func parseHexToAnsiCode(hexCode string, colorCap termcolor.ColorCap) string {
 	//fg=#RRGGBB
 		R, _ := strconv.ParseInt(hexCode[4:6], 16, 32)
 		G, _ := strconv.ParseInt(hexCode[6:8], 16, 32)
 	    B, _ := strconv.ParseInt(hexCode[8:10], 16, 32)
-		return parseRGBToAnsiCode(hexCode, []int{int(R), int(G), int(B)})
+		return parseRGBToAnsiCode(hexCode, []int{int(R), int(G), int(B)}, colorCap)
 }
+
+
+func parseRGBToAnsiCode(rgbCode string, RGB []int, colorCap termcolor.ColorCap) string {
+	r, g, b := RGB[0], RGB[1], RGB[2]
+	switch {
+	case colorCap == termcolor.ColorTrue:
+		return parseAnsi(rgbCode, fmt.Sprintf("2;%d;%d;%d", r, g, b))
+	case colorCap <= termcolor.Color256:
+		return parse256ColorCode(rgbCode, rgbTo256Index(r, g, b), colorCap)
+	default:
+		return ""
+	}
+}
+
+
 
 /* Note:
     #foreground colors use 38 and background colors use 48. the 2 is for truecolor support
 so its \e[38;2;R;G;Bm or for background \e[48;2;R;G;Bm
 so the second row of number tells what color mode it is (2: rgb(24 bits), 245)
  2 is for truecolor supported numbers that is rgb and its 24 bits using a range of 0-255
- 5 is for 256 palette(index 196)
- 256 palette support syntax will be [fg=214] = foreground color and [bg=214] = background color*/
+ 5 is for 256 palette code*/
 
-func parse256ColorCode(colorCode string, paletteCode int) string {
-	if supports256Color(){
-		return parseAnsi(colorCode, fmt.Sprintf("5;%d", paletteCode))
-	}
-	if !supportsNone() {
-	return parseAnsi16(colorCode, fmt.Sprint(ansi256ToAnsi16Lut[paletteCode]))
-	}
-	return ""
-}
+
 
 
 
 //==============================
 // COLOR DISPATCHING
 //==============================
-func parseColor(color string) string {
+func parseColor(color string, colorCap termcolor.ColorCap) string {
 	//this function is meant to receive string like "bold" "fg=red" and other colors and
 	//convert them to their ansi codes
 	if code, exists := colorMap[color]; exists {
@@ -272,17 +252,17 @@ func parseColor(color string) string {
 		return fmt.Sprintf("\033[%sm", code)
 	}
 
-
+    
 	if palette, ok := isValid256Code(color); ok{
-		return parse256ColorCode(color, palette)
+		return parse256ColorCode(color, palette, colorCap)
 	}
-
+   
 	if isValidHex(color) {
-		return parseHexToAnsiCode(color)
+		return parseHexToAnsiCode(color, colorCap)
 	}
     
 	if rgb, ok := isValidRGB(color); ok{
-		return parseRGBToAnsiCode(color, rgb)
+		return parseRGBToAnsiCode(color, rgb, colorCap)
 	}
 	return ""
 }

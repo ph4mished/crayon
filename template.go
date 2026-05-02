@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"github.com/inkstamp/inkstamp/termcolor"
 )
 
 type TempPart struct {
@@ -31,7 +32,7 @@ type CompiledTemplate struct {
 // PARSE - LOOP
 //=============================
 
-func parseLoop(input string, enableColor bool) ([]TempPart, string) {
+func parseLoop(input string, enableColor bool, colorCap termcolor.ColorCap) ([]TempPart, string) {
 	var (
 		parts           []TempPart
 		currentText     string
@@ -47,7 +48,7 @@ func parseLoop(input string, enableColor bool) ([]TempPart, string) {
 			parts, currentText, contentSequence, inReadSequence = handleOpenBracket(i, input, parts, currentText)
 
 		case ch == ']' && inReadSequence:
-			parts, inReadSequence = handleCloseBracket(contentSequence, parts, enableColor)
+			parts, inReadSequence = handleCloseBracket(contentSequence, parts, enableColor, colorCap)
 			contentSequence = ""
 
 		case inReadSequence:
@@ -86,11 +87,11 @@ func handleOpenBracket(i int, input string, parts []TempPart, currentText string
 	return parts, "", "", true
 }
 
-func handleCloseBracket(contentSequence string, parts []TempPart, enableColor bool) ([]TempPart, bool) {
+func handleCloseBracket(contentSequence string, parts []TempPart, enableColor bool, colorCap termcolor.ColorCap) ([]TempPart, bool) {
 	allWords := strings.Fields(contentSequence)
 
 	if isColorSequence(allWords) {
-		parts = handleColorSequence(parts, allWords, enableColor)
+		parts = handleColorSequence(parts, allWords, enableColor, colorCap)
 	} else {
 		parts = handleNonColorSequence(parts, contentSequence)
 	}
@@ -113,10 +114,10 @@ func isColorSequence(allWords []string) bool {
 	return true
 }
 
-func handleColorSequence(parts []TempPart, words []string, enableColor bool) []TempPart {
+func handleColorSequence(parts []TempPart, words []string, enableColor bool, colorCap termcolor.ColorCap) []TempPart {
 	if enableColor {
 		for _, w := range words {
-			parts = append(parts, TempPart{Text: parseColor(w), Index: -1, Align: 0, Width: 0, FillChar: "" })
+			parts = append(parts, TempPart{Text: parseColor(w, colorCap), Index: -1, Align: 0, Width: 0, FillChar: "" })
 		}
 	} else {
 		parts = append(parts, TempPart{Text: "", Index: -1, Align: 0, Width: 0, FillChar: "" })
@@ -141,27 +142,6 @@ func handleNonColorSequence(parts []TempPart, contentSequence string) []TempPart
 //=============================
 // PARSE - PLACEHOLDER
 //=============================
-//extract placeholders
-//placeholders will support padding too. [0:<20] = left alignment, [0:>20] = right align
-
-//========= WHY PADDINGS WERE ADOPTED =========
-//crayon added inline padding because doing so with fmt.Printf was cumbersome considering repeated output
-//pad := crayon.Parse("[fg=red]Error: [0][reset]")
-//using fmt.Printf("%-20s", pad.Sprint("File Not Found"))
-//This left aligns the whole "\033[31mError: File Not Found\033[0m" instead of only "File Not Found"
-
-//Although there's a fix, its verbose
-// use pad.Println(fmt.Sprintf("%-20s", "File Not Found"))
-
-//So crayon opted for {Define once, pad many times}
-// pad := crayon.Parse("[fg=red]Error: [0:<20][reset]")
-//  pad.Println("File Not Found") which correctly left aligns only "File Not Found"
-
-//crayon's padding is nothing special, it just does this
-//padIt := fmt.Sprintf("%-20s", "File Not Found") in the backend
-// pad.Println(padIt)
-//Saving you less typing strokes and efficient for repeated outputs
-//========= END =========
 
 
 func isValidPlaceholder(input string) bool {
@@ -179,8 +159,8 @@ func handlePlaceholder(parts []TempPart, contentSequence string) []TempPart {
 }
 
 func handlePaddedPlaceholder(parts []TempPart, contentSequence string) []TempPart {
-	//[0:>20] stripped of its brackets ==> 0:>20:=
-	splitWord := strings.SplitN(contentSequence, ":", 3) // ==> [0 >20]
+	//[0:>20:=] stripped of its brackets ==> 0:>20:=
+	splitWord := strings.SplitN(contentSequence, ":", 3) // ==> [0 >20 =]
 	if len(splitWord) < 2 {
 		return append(parts, TempPart{Text: "[" + contentSequence + "]", Index: -1, Align: 0, Width: 0, FillChar: "" })
 	}
@@ -217,7 +197,7 @@ func parseAlignWidth(input string) (rune, int, bool) {
 		return 0, 0, false
 	}
 	align := rune(input[0])
-	if align != '<' && align != '>' {
+	if align != '<' && align != '>' && align != '^' {
 		return 0, 0, false
 	}
 
@@ -267,10 +247,10 @@ func applyPadding(value string, align rune, width int, fillChar string) string {
 	switch align {
 	//left align
 	case '<':
-		return leftAlign(value, width, fillChar)//fmt.Sprintf("%%-%ds", width)
+		return leftAlign(value, width, fillChar)
 		//right align
 	case '>':
-		return rightAlign(value, width, fillChar)//fmt.Sprintf("%%%ds", width)
+		return rightAlign(value, width, fillChar)
 		//centre align
     case '^':
 	    return centerAlign(value, width, fillChar)
@@ -314,9 +294,8 @@ func (temp CompiledTemplate) apply(args ...any) string {
 			result.WriteString(part.Text)
 		} else if part.Index < len(args) {
 			value := fmt.Sprint(args[part.Index])
-			//if part.FormatStr != "" {		
 			if part.Width > 0 {		
-				value = applyPadding(value, part.Align, part.Width, part.FillChar)//fmt.Sprintf(part.FormatStr, value)
+				value = applyPadding(value, part.Align, part.Width, part.FillChar)
 			}
 			result.WriteString(value)
 		}

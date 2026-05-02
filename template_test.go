@@ -4,14 +4,17 @@ import (
 	//"bytes"
 	//"strings"
 	"testing"
+	//"github.com/inkstamp/inkstamp/termcolor"
 )
+
+//var colorCap = termcolor.Capability()
 
 //=================================
 // PARSE LOOP TESTS
 //=================================
 
 func TestParseLoop_BasicText(t *testing.T) {
-	parts, text := parseLoop("Hello World", true)
+	parts, text := parseLoop("Hello World", true, colorCap)
 
 	if len(parts) != 0 {
 		t.Errorf("Expected 0 parts, got %d", len(parts))
@@ -23,7 +26,7 @@ func TestParseLoop_BasicText(t *testing.T) {
 }
 
 func TestParseLoop_SimpleColorTag(t *testing.T) {
-	parts, text := parseLoop("[fg=red]Hello", true)
+	parts, text := parseLoop("[fg=red]Hello", true, colorCap)
 
 	if len(parts) != 1 {
 		t.Errorf("Expected 1 part, got %d", len(parts))
@@ -39,7 +42,7 @@ func TestParseLoop_SimpleColorTag(t *testing.T) {
 }
 
 func TestParseLoop_MultipleColorTags(t *testing.T) {
-	parts, text := parseLoop("[fg=red][bg=blue]Multi", true)
+	parts, text := parseLoop("[fg=red][bg=blue]Multi", true, colorCap)
 
 	if len(parts) != 2 {
 		t.Errorf("Expected 2 parts, got %d", len(parts))
@@ -52,7 +55,7 @@ func TestParseLoop_MultipleColorTags(t *testing.T) {
 
 
 func TestParseLoop_ColorWithTextBeforeAndAfter(t *testing.T) {
-	parts, text := parseLoop("Start [fg=cyan]Middle[reset] End", true)
+	parts, text := parseLoop("Start [fg=cyan]Middle[reset] End", true, colorCap)
 
 	if len(parts) != 4 {
 		t.Errorf("Expected 4 parts, got %d", len(parts))
@@ -104,7 +107,7 @@ func TestHandleOpenBrackets_ValidOpen(t *testing.T) {
 
 func TestHandleCloseBrackets_ColorSequence(t *testing.T) {
 	parts := []TempPart{}
-	parts, _ = handleCloseBracket("fg=red bg=blue", parts, true)
+	parts, _ = handleCloseBracket("fg=red bg=blue", parts, true, colorCap)
 
 	if len(parts) != 2 {
 		t.Errorf("Expected 2 parts for two color tags, got %d", len(parts))
@@ -113,7 +116,7 @@ func TestHandleCloseBrackets_ColorSequence(t *testing.T) {
 
 func TestHandleCloseBrackets_ColorSequenceDisabled(t *testing.T) {
 	parts := []TempPart{}
-	parts, _ = handleCloseBracket("fg=red bg=blue", parts, false)
+	parts, _ = handleCloseBracket("fg=red bg=blue", parts, false, colorCap)
 
 	if len(parts) != 1 {
 		t.Errorf("Expected 1 empty part, got %d", len(parts))
@@ -182,14 +185,14 @@ func TestCenterAlign_WithFillChar(t *testing.T) {
 func BenchmarkHandleCloseBrackets_ColorSequenceDisabled(b *testing.B) {
 	parts := []TempPart{}
 	for i := 0; i < b.N; i++ {
-		_, _ = handleCloseBracket("fg=red bg=blue", parts, false)
+		_, _ = handleCloseBracket("fg=red bg=blue", parts, false, colorCap)
 	}
 }
 
 func BenchmarkHandleCloseBrackets_ColorSequence(b *testing.B) {
 	parts := []TempPart{}
 	for i := 0; i < b.N; i++ {
-		_, _ = handleCloseBracket("fg=red bg=blue", parts, true)
+		_, _ = handleCloseBracket("fg=red bg=blue", parts, true, colorCap)
 	}
 }
 
@@ -211,19 +214,19 @@ func BenchmarkHandleOpenBrackets_ValidOpen(b *testing.B) {
 
 func BenchmarkParseLoop_ColorWithTextBeforeAndAfter(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _ = parseLoop("Start [fg=cyan]Middle[reset] End", true)
+		_, _ = parseLoop("Start [fg=cyan]Middle[reset] End", true, colorCap)
 	}
 }
 
 func BenchmarkParseLoop_MultipleColorTags(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _ = parseLoop("[fg=red][bg=blue]Multi", true)
+		_, _ = parseLoop("[fg=red][bg=blue]Multi", true, colorCap)
 	}
 }
 
 func BenchmarkParseLoop_SimpleColorTag(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _ = parseLoop("[fg=red]Hello", true)
+		_, _ = parseLoop("[fg=red]Hello", true, colorCap)
 	}
 }
 
